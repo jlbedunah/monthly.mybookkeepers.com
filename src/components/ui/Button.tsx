@@ -27,7 +27,7 @@ export function Button({
             variant === "primary",
           "bg-white text-gray-700 border border-gray-300 hover:bg-gray-50 focus:ring-red-500":
             variant === "secondary",
-          "bg-red-600 text-white hover:bg-red-700 focus:ring-red-500":
+          "bg-red-800 text-white hover:bg-red-900 focus:ring-red-700":
             variant === "danger",
           "text-gray-600 hover:text-gray-900 hover:bg-gray-100 focus:ring-gray-500":
             variant === "ghost",
