@@ -1,18 +1,23 @@
 "use client";
 
-import { useState } from "react";
-import { signIn } from "next-auth/react";
+import { useState, useEffect } from "react";
+import { signIn, getProviders } from "next-auth/react";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { Mail, CheckCircle } from "lucide-react";
-
-const isMock = process.env.NEXT_PUBLIC_USE_MOCK === "true";
 
 export function LoginForm() {
   const [email, setEmail] = useState("");
   const [sent, setSent] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
+  const [isMock, setIsMock] = useState(false);
+
+  useEffect(() => {
+    getProviders().then((providers) => {
+      if (providers?.credentials) setIsMock(true);
+    });
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
