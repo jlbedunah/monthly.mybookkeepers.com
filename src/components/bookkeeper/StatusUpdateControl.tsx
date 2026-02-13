@@ -50,7 +50,7 @@ export function StatusUpdateControl({
   return (
     <div className="flex items-end gap-3">
       <Select
-        label="Status"
+        label="To change the status select from dropdown"
         options={STATUS_OPTIONS}
         value={status}
         onChange={(e) => setStatus(e.target.value as PackageStatus)}

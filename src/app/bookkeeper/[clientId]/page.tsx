@@ -139,6 +139,7 @@ export default function ClientDetailPage() {
                         <table className="w-full text-left text-sm">
                           <thead>
                             <tr className="border-b border-gray-200 text-gray-500">
+                              <th className="pb-3 pr-4 font-medium">Month</th>
                               <th className="pb-3 pr-4 font-medium">Institution</th>
                               <th className="pb-3 pr-4 font-medium">Account</th>
                               <th className="pb-3 pr-4 font-medium">Type</th>
@@ -152,6 +153,9 @@ export default function ClientDetailPage() {
                                 key={stmt.id}
                                 className="border-b border-gray-100"
                               >
+                                <td className="py-3 pr-4 text-gray-700">
+                                  {MONTHS[pkg.month - 1]} {pkg.year}
+                                </td>
                                 <td className="py-3 pr-4 font-medium text-gray-900">
                                   {stmt.institutionName}
                                 </td>
