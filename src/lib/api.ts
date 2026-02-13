@@ -1,4 +1,4 @@
-import type { UpdateUserInput } from "./validations";
+import type { UpdateUserInput, UpdatePackageStatusInput } from "./validations";
 
 async function fetchJson<T>(url: string, options?: RequestInit): Promise<T> {
   const res = await fetch(url, options);
@@ -68,4 +68,44 @@ export async function submitPackage(packageId: string) {
   return fetchJson(`/api/months/${packageId}/submit`, {
     method: "POST",
   });
+}
+
+// ── Bookkeeper API helpers ──
+
+export async function updatePackageStatus(
+  clientId: string,
+  monthId: string,
+  data: UpdatePackageStatusInput
+) {
+  return fetchJson(
+    `/api/bookkeeper/clients/${clientId}/months/${monthId}/status`,
+    {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(data),
+    }
+  );
+}
+
+export async function downloadStatements(clientId: string, monthId: string) {
+  const res = await fetch(
+    `/api/bookkeeper/clients/${clientId}/months/${monthId}/download`
+  );
+  if (!res.ok) {
+    const error = await res.json().catch(() => ({ error: "Download failed" }));
+    throw new Error(error.error || "Download failed");
+  }
+  const blob = await res.blob();
+  const disposition = res.headers.get("Content-Disposition") ?? "";
+  const match = disposition.match(/filename="(.+)"/);
+  const filename = match?.[1] ?? "statements.zip";
+
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  URL.revokeObjectURL(url);
 }

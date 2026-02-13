@@ -14,6 +14,10 @@ import * as mock from "./mock-store";
 
 const isMock = process.env.USE_MOCK === "true";
 
+function detectRole(email: string): "client" | "bookkeeper" {
+  return email.endsWith("@mybookkeepers.com") ? "bookkeeper" : "client";
+}
+
 export const { handlers, auth, signIn, signOut } = NextAuth({
   ...authConfig,
   adapter: isMock
@@ -51,11 +55,28 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         token.id = user.id;
         token.email = user.email;
       }
+      // Determine role from email
+      if (token.email) {
+        if (isMock) {
+          token.role = detectRole(token.email as string);
+        } else {
+          // In production, check the DB role column
+          const { eq } = await import("drizzle-orm");
+          const { users } = await import("@/lib/db/schema");
+          const dbUser = await db.query.users.findFirst({
+            where: eq(users.id, token.id as string),
+          });
+          token.role = dbUser?.role ?? detectRole(token.email as string);
+        }
+      }
       return token;
     },
     async session({ session, token }) {
       if (token.id) {
         session.user.id = token.id as string;
+        session.user.role = (token.role as "client" | "bookkeeper") ?? "client";
+
+        const isBookkeeper = session.user.role === "bookkeeper";
 
         if (isMock) {
           let u = mock.findUserById(token.id as string);
@@ -63,14 +84,20 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
             // Re-create mock user after server restart, preserving JWT id
             u = mock.createUser(token.email as string, token.id as string);
           }
-          session.user.onboardingComplete = !!(u?.name && u?.companyName);
+          // Bookkeepers skip onboarding
+          session.user.onboardingComplete = isBookkeeper || !!(u?.name && u?.companyName);
+
+          // Seed bookkeeper data if needed
+          if (isBookkeeper) {
+            mock.seedBookkeeperData();
+          }
         } else {
           const { eq } = await import("drizzle-orm");
           const { users } = await import("@/lib/db/schema");
           const dbUser = await db.query.users.findFirst({
             where: eq(users.id, token.id as string),
           });
-          session.user.onboardingComplete = !!(
+          session.user.onboardingComplete = isBookkeeper || !!(
             dbUser?.name && dbUser?.companyName
           );
         }

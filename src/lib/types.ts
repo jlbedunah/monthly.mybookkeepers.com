@@ -1,3 +1,15 @@
+export type UserRole = "client" | "bookkeeper";
+
+export interface BookkeeperClient {
+  id: string;
+  name: string | null;
+  email: string;
+  companyName: string | null;
+  latestActivity: string | null;
+  latestPackageStatus: PackageStatus | null;
+  statementCount: number;
+}
+
 export type PackageStatus =
   | "need_statements"
   | "categorizing"

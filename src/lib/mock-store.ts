@@ -12,6 +12,7 @@ export type MockUser = {
   companyName: string | null;
   qboName: string | null;
   phone: string | null;
+  role: "client" | "bookkeeper";
   createdAt: Date;
   updatedAt: Date;
 };
@@ -42,11 +43,12 @@ interface Store {
   users: MockUser[];
   packages: MockPackage[];
   statements: MockStatement[];
+  bookkeeperDataSeeded: boolean;
 }
 
 const g = globalThis as unknown as { __mockStore?: Store };
 if (!g.__mockStore) {
-  g.__mockStore = { users: [], packages: [], statements: [] };
+  g.__mockStore = { users: [], packages: [], statements: [], bookkeeperDataSeeded: false };
 }
 const store = g.__mockStore;
 
@@ -61,6 +63,7 @@ export function findUserByEmail(email: string) {
 }
 
 export function createUser(email: string, id?: string): MockUser {
+  const role = email.endsWith("@mybookkeepers.com") ? "bookkeeper" as const : "client" as const;
   const user: MockUser = {
     id: id ?? crypto.randomUUID(),
     name: null,
@@ -70,6 +73,7 @@ export function createUser(email: string, id?: string): MockUser {
     companyName: null,
     qboName: null,
     phone: null,
+    role,
     createdAt: new Date(),
     updatedAt: new Date(),
   };
@@ -124,6 +128,16 @@ export function getPackageById(id: string, userId: string) {
   };
 }
 
+/** Bookkeeper version: get package by ID without ownership check */
+export function getPackageByIdUnscoped(id: string) {
+  const pkg = store.packages.find((p) => p.id === id);
+  if (!pkg) return null;
+  return {
+    ...pkg,
+    statements: store.statements.filter((s) => s.monthlyPackageId === id),
+  };
+}
+
 export function findPackageByMonth(
   userId: string,
   month: number,
@@ -159,6 +173,13 @@ export function submitPackage(id: string) {
     ...pkg,
     statements: store.statements.filter((s) => s.monthlyPackageId === id),
   };
+}
+
+export function updatePackageStatus(id: string, status: string) {
+  const pkg = store.packages.find((p) => p.id === id);
+  if (!pkg) return null;
+  pkg.status = status;
+  return pkg;
 }
 
 // ── Statement operations ──
@@ -209,6 +230,33 @@ export function getInstitutionsForUser(userId: string) {
       .map((s) => s.institutionName)
   );
   return Array.from(names).sort();
+}
+
+// ── Bookkeeper operations ──
+
+export function getAllClients() {
+  const clients = store.users.filter((u) => u.role === "client");
+  return clients.map((u) => {
+    const userPkgs = store.packages
+      .filter((p) => p.userId === u.id)
+      .sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
+
+    const stmtCount = userPkgs.reduce((sum, p) => {
+      return sum + store.statements.filter((s) => s.monthlyPackageId === p.id).length;
+    }, 0);
+
+    const latestPkg = userPkgs[0] ?? null;
+
+    return {
+      id: u.id,
+      name: u.name,
+      email: u.email,
+      companyName: u.companyName,
+      latestActivity: latestPkg ? latestPkg.createdAt.toISOString() : null,
+      latestPackageStatus: latestPkg ? latestPkg.status : null,
+      statementCount: stmtCount,
+    };
+  });
 }
 
 // ── Seed data ──
@@ -276,6 +324,142 @@ function seedHistory(userId: string) {
         fileSize: Math.floor(Math.random() * 2_000_000) + 100_000,
         uploadedAt: new Date(d.getTime() + 86400000 * 10),
       });
+    }
+  }
+}
+
+/** Seed mock client data for bookkeeper view. Only runs once. */
+export function seedBookkeeperData() {
+  if (store.bookkeeperDataSeeded) return;
+  store.bookkeeperDataSeeded = true;
+
+  const now = new Date();
+  const mockClients = [
+    {
+      name: "Sarah Johnson",
+      email: "sarah@johnsonconsulting.com",
+      company: "Johnson Consulting LLC",
+      months: [
+        {
+          monthsAgo: 1,
+          status: "categorizing",
+          stmts: [
+            { inst: "Chase Bank", last4: "9012", type: "bank", file: "chase-jan-2026.pdf" },
+            { inst: "Amex Business", last4: "3456", type: "credit_card", file: "amex-jan-2026.pdf" },
+          ],
+        },
+        {
+          monthsAgo: 2,
+          status: "finished",
+          stmts: [
+            { inst: "Chase Bank", last4: "9012", type: "bank", file: "chase-dec-2025.pdf" },
+            { inst: "Amex Business", last4: "3456", type: "credit_card", file: "amex-dec-2025.pdf" },
+          ],
+        },
+      ],
+    },
+    {
+      name: "Mike Chen",
+      email: "mike@chensrestaurant.com",
+      company: "Chen's Restaurant Group",
+      months: [
+        {
+          monthsAgo: 1,
+          status: "need_statements",
+          stmts: [],
+        },
+        {
+          monthsAgo: 2,
+          status: "reconciled",
+          stmts: [
+            { inst: "Bank of America", last4: "7788", type: "bank", file: "boa-dec-2025.pdf" },
+            { inst: "US Bank Loan", last4: "2200", type: "loan", file: "usbank-dec-2025.pdf" },
+          ],
+        },
+        {
+          monthsAgo: 3,
+          status: "finished",
+          stmts: [
+            { inst: "Bank of America", last4: "7788", type: "bank", file: "boa-nov-2025.pdf" },
+          ],
+        },
+      ],
+    },
+    {
+      name: "Lisa Park",
+      email: "lisa@parkdesignstudio.com",
+      company: "Park Design Studio",
+      months: [
+        {
+          monthsAgo: 1,
+          status: "categorizing",
+          stmts: [
+            { inst: "Wells Fargo", last4: "4455", type: "bank", file: "wellsfargo-jan-2026.pdf" },
+            { inst: "Capital One", last4: "6677", type: "credit_card", file: "capone-jan-2026.pdf" },
+            { inst: "PayPal", last4: "8899", type: "other", file: "paypal-jan-2026.pdf" },
+          ],
+        },
+      ],
+    },
+    {
+      name: "David Kim",
+      email: "david@kimplumbing.com",
+      company: "Kim Plumbing & HVAC",
+      months: [
+        {
+          monthsAgo: 1,
+          status: "reconciling",
+          stmts: [
+            { inst: "US Bank", last4: "1122", type: "bank", file: "usbank-jan-2026.pdf" },
+            { inst: "Home Depot Card", last4: "3344", type: "credit_card", file: "homedepot-jan-2026.pdf" },
+          ],
+        },
+        {
+          monthsAgo: 2,
+          status: "finished",
+          stmts: [
+            { inst: "US Bank", last4: "1122", type: "bank", file: "usbank-dec-2025.pdf" },
+            { inst: "Home Depot Card", last4: "3344", type: "credit_card", file: "homedepot-dec-2025.pdf" },
+          ],
+        },
+      ],
+    },
+  ];
+
+  for (const client of mockClients) {
+    // Don't re-create if user already exists
+    if (findUserByEmail(client.email)) continue;
+
+    const user = createUser(client.email);
+    user.name = client.name;
+    user.companyName = client.company;
+    user.role = "client";
+
+    for (const m of client.months) {
+      const d = new Date(now.getFullYear(), now.getMonth() - m.monthsAgo, 1);
+      const pkgId = crypto.randomUUID();
+      store.packages.push({
+        id: pkgId,
+        userId: user.id,
+        month: d.getMonth() + 1,
+        year: d.getFullYear(),
+        status: m.status,
+        submittedAt: m.status !== "need_statements" ? new Date(d.getTime() + 86400000 * 15) : null,
+        createdAt: d,
+      });
+      for (const s of m.stmts) {
+        store.statements.push({
+          id: crypto.randomUUID(),
+          monthlyPackageId: pkgId,
+          institutionName: s.inst,
+          accountLast4: s.last4,
+          institutionType: s.type,
+          fileUrl: `#mock-file-${s.file}`,
+          fileName: s.file,
+          fileSize: Math.floor(Math.random() * 2_000_000) + 100_000,
+          uploadedAt: new Date(d.getTime() + 86400000 * 10),
+        });
+      }
     }
   }
 }

@@ -18,6 +18,18 @@ export const uploadStatementSchema = z.object({
   institutionType: z.enum(["bank", "credit_card", "loan", "other"]),
 });
 
+export const updatePackageStatusSchema = z.object({
+  status: z.enum([
+    "need_statements",
+    "categorizing",
+    "categorized",
+    "reconciling",
+    "reconciled",
+    "finished",
+  ]),
+});
+
 export type UpdateUserInput = z.infer<typeof updateUserSchema>;
 export type CreateMonthInput = z.infer<typeof createMonthSchema>;
 export type UploadStatementInput = z.infer<typeof uploadStatementSchema>;
+export type UpdatePackageStatusInput = z.infer<typeof updatePackageStatusSchema>;

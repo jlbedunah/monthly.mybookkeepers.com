@@ -20,7 +20,9 @@ export const authConfig = {
 
       if (isOnLoginPage || isOnVerifyPage) {
         if (isLoggedIn) {
-          return Response.redirect(new URL("/dashboard", nextUrl));
+          const role = (auth as { user?: { role?: string } })?.user?.role;
+          const dest = role === "bookkeeper" ? "/bookkeeper" : "/dashboard";
+          return Response.redirect(new URL(dest, nextUrl));
         }
         return true;
       }

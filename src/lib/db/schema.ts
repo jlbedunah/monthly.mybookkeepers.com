@@ -13,6 +13,8 @@ import { relations } from "drizzle-orm";
 import type { AdapterAccountType } from "next-auth/adapters";
 
 // Enums
+export const userRoleEnum = pgEnum("user_role", ["client", "bookkeeper"]);
+
 export const packageStatusEnum = pgEnum("package_status", [
   "need_statements",
   "categorizing",
@@ -39,6 +41,7 @@ export const users = pgTable("users", {
   companyName: text("company_name"),
   qboName: text("qbo_name"),
   phone: text("phone"),
+  role: userRoleEnum("role").default("client").notNull(),
   createdAt: timestamp("created_at", { mode: "date" }).defaultNow().notNull(),
   updatedAt: timestamp("updated_at", { mode: "date" }).defaultNow().notNull(),
 });
