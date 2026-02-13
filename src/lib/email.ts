@@ -55,3 +55,39 @@ export async function sendSubmissionNotification({
     html,
   });
 }
+
+interface CompletionNotificationParams {
+  clientName: string;
+  clientEmail: string;
+  companyName: string;
+  month: string;
+  year: number;
+}
+
+export async function sendCompletionNotification({
+  clientName,
+  clientEmail,
+  companyName,
+  month,
+  year,
+}: CompletionNotificationParams) {
+  const html = `
+    <div style="font-family:sans-serif;max-width:600px;margin:0 auto">
+      <h2 style="color:#991b1b">Your Bookkeeping is Complete!</h2>
+      <p>Hi ${clientName || "there"},</p>
+      <p>Great news! Your bookkeeping for <strong>${month} ${year}</strong> has been completed by the MyBookkeepers.com team.</p>
+      <p><strong>Company:</strong> ${companyName}</p>
+      <p><strong>Period:</strong> ${month} ${year}</p>
+      <p>If you have any questions, please don't hesitate to reach out.</p>
+      <p style="margin-top:24px">Thank you for choosing MyBookkeepers.com!</p>
+      <p style="margin-top:16px;color:#6b7280;font-size:14px">— The MyBookkeepers.com Team</p>
+    </div>
+  `;
+
+  await resend.emails.send({
+    from: "MyBookkeepers.com <noreply@mybookkeepers.com>",
+    to: clientEmail,
+    subject: `Your bookkeeping for ${month} ${year} is complete — ${companyName}`,
+    html,
+  });
+}

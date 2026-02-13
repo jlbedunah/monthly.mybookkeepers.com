@@ -5,6 +5,11 @@ import * as mock from "@/lib/mock-store";
 
 const isMock = process.env.USE_MOCK === "true";
 
+const MONTHS = [
+  "January", "February", "March", "April", "May", "June",
+  "July", "August", "September", "October", "November", "December",
+];
+
 export async function PUT(
   request: Request,
   { params }: { params: Promise<{ clientId: string; monthId: string }> }
@@ -31,11 +36,19 @@ export async function PUT(
       return NextResponse.json({ error: "Not found" }, { status: 404 });
     }
     mock.updatePackageStatus(monthId, parsed.data.status);
+
+    if (parsed.data.status === "finished") {
+      const user = mock.findUserById(clientId);
+      console.log(
+        `[Mock] Would email ${user?.email}: bookkeeping for ${MONTHS[pkg.month - 1]} ${pkg.year} is complete`
+      );
+    }
+
     return NextResponse.json({ success: true, status: parsed.data.status });
   }
 
   const { db } = await import("@/lib/db");
-  const { monthlyPackages } = await import("@/lib/db/schema");
+  const { monthlyPackages, users } = await import("@/lib/db/schema");
   const { eq, and } = await import("drizzle-orm");
 
   const pkg = await db.query.monthlyPackages.findFirst({
@@ -53,6 +66,27 @@ export async function PUT(
     .update(monthlyPackages)
     .set({ status: parsed.data.status })
     .where(eq(monthlyPackages.id, monthId));
+
+  // Send completion email to client when status is set to "finished"
+  if (parsed.data.status === "finished") {
+    try {
+      const user = await db.query.users.findFirst({
+        where: eq(users.id, clientId),
+      });
+      if (user?.email) {
+        const { sendCompletionNotification } = await import("@/lib/email");
+        await sendCompletionNotification({
+          clientName: user.name ?? "",
+          clientEmail: user.email,
+          companyName: user.companyName ?? "",
+          month: MONTHS[pkg.month - 1],
+          year: pkg.year,
+        });
+      }
+    } catch (err) {
+      console.error("Failed to send completion email:", err);
+    }
+  }
 
   return NextResponse.json({ success: true, status: parsed.data.status });
 }
