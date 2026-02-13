@@ -55,19 +55,9 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         token.id = user.id;
         token.email = user.email;
       }
-      // Determine role from email
+      // Determine role: @mybookkeepers.com emails are always bookkeepers
       if (token.email) {
-        if (isMock) {
-          token.role = detectRole(token.email as string);
-        } else {
-          // In production, check the DB role column
-          const { eq } = await import("drizzle-orm");
-          const { users } = await import("@/lib/db/schema");
-          const dbUser = await db.query.users.findFirst({
-            where: eq(users.id, token.id as string),
-          });
-          token.role = dbUser?.role ?? detectRole(token.email as string);
-        }
+        token.role = detectRole(token.email as string);
       }
       return token;
     },

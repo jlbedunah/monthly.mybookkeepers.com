@@ -20,9 +20,9 @@ export const authConfig = {
 
       if (isOnLoginPage || isOnVerifyPage) {
         if (isLoggedIn) {
-          const role = (auth as { user?: { role?: string } })?.user?.role;
-          const dest = role === "bookkeeper" ? "/bookkeeper" : "/dashboard";
-          return Response.redirect(new URL(dest, nextUrl));
+          // Middleware doesn't have custom session fields, so redirect to
+          // /dashboard and let the layout handle bookkeeper re-routing
+          return Response.redirect(new URL("/dashboard", nextUrl));
         }
         return true;
       }
