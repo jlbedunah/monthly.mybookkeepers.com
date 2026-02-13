@@ -54,6 +54,19 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       if (user) {
         token.id = user.id;
         token.email = user.email;
+
+        // Sync role to DB on sign-in so queries stay consistent
+        if (!isMock && user.email) {
+          const role = detectRole(user.email);
+          if (role === "bookkeeper") {
+            const { eq } = await import("drizzle-orm");
+            const { users } = await import("@/lib/db/schema");
+            await db
+              .update(users)
+              .set({ role })
+              .where(eq(users.id, user.id as string));
+          }
+        }
       }
       // Determine role: @mybookkeepers.com emails are always bookkeepers
       if (token.email) {
