@@ -41,8 +41,8 @@ export function ClientListTable({ onSelectClient }: ClientListTableProps) {
   return (
     <Card>
       <CardContent>
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between mb-6">
-          <div className="relative flex-1 max-w-md">
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-center mb-6">
+          <div className="relative flex-1">
             <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
             <input
               type="text"
@@ -52,11 +52,13 @@ export function ClientListTable({ onSelectClient }: ClientListTableProps) {
               className="w-full rounded-lg border border-gray-300 py-2 pl-10 pr-4 text-sm focus:border-red-500 focus:outline-none focus:ring-1 focus:ring-red-500"
             />
           </div>
-          <Select
-            options={FILTER_OPTIONS}
-            value={filter}
-            onChange={(e) => setFilter(e.target.value)}
-          />
+          <div className="flex-1">
+            <Select
+              options={FILTER_OPTIONS}
+              value={filter}
+              onChange={(e) => setFilter(e.target.value)}
+            />
+          </div>
         </div>
 
         {isLoading ? (
