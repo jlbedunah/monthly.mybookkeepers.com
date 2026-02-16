@@ -51,6 +51,17 @@ export function OnboardingForm() {
         error={errors.companyName?.message}
         {...register("companyName", { required: "Company name is required" })}
       />
+      <div>
+        <Input
+          id="billingEmail"
+          label="Billing Email (Authorize.net)"
+          placeholder="billing@yourcompany.com"
+          {...register("billingEmail")}
+        />
+        <p className="mt-1 text-xs text-gray-500">
+          The email associated with your billing subscription
+        </p>
+      </div>
       <Input
         id="qboName"
         label="QuickBooks Online Company Name (optional)"

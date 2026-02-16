@@ -31,6 +31,8 @@ export async function GET(request: Request) {
       clients = clients.filter((c) => {
         if (filter === "no_uploads") return c.statementCount === 0;
         if (filter === "incomplete") return c.latestPackageStatus === "need_statements";
+        if (filter === "sub_active") return c.subscriptionStatus === "active";
+        if (filter === "sub_inactive") return c.subscriptionStatus === "inactive";
         return c.latestPackageStatus === filter;
       });
     }
@@ -51,6 +53,7 @@ export async function GET(request: Request) {
     users,
     monthlyPackages,
     statements,
+    subscriptions,
   } = await import("@/lib/db/schema");
   const { eq, desc, count, sql } = await import("drizzle-orm");
 
@@ -79,6 +82,7 @@ export async function GET(request: Request) {
     latestActivity: string | null;
     latestPackageStatus: PackageStatus | null;
     statementCount: number;
+    subscriptionStatus: "active" | "inactive";
   }> = [];
 
   for (const row of rows) {
@@ -96,6 +100,11 @@ export async function GET(request: Request) {
       orderBy: [desc(monthlyPackages.year), desc(monthlyPackages.month)],
     });
 
+    // Check subscription status
+    const activeSub = await db.query.subscriptions.findFirst({
+      where: sql`${subscriptions.userId} = ${row.id} AND ${subscriptions.status} = 'active'`,
+    });
+
     const entry = {
       id: row.id,
       name: row.name,
@@ -104,13 +113,16 @@ export async function GET(request: Request) {
       latestActivity: latestPkg?.createdAt?.toISOString() ?? null,
       latestPackageStatus: (latestPkg?.status as PackageStatus) ?? null,
       statementCount: Number(row.statementCount),
+      subscriptionStatus: activeSub ? "active" as const : "inactive" as const,
     };
 
     // Apply filter
     if (filter) {
       if (filter === "no_uploads" && entry.statementCount !== 0) continue;
       if (filter === "incomplete" && entry.latestPackageStatus !== "need_statements") continue;
-      if (filter !== "no_uploads" && filter !== "incomplete" && entry.latestPackageStatus !== filter) continue;
+      if (filter === "sub_active" && entry.subscriptionStatus !== "active") continue;
+      if (filter === "sub_inactive" && entry.subscriptionStatus !== "inactive") continue;
+      if (!["no_uploads", "incomplete", "sub_active", "sub_inactive"].includes(filter) && entry.latestPackageStatus !== filter) continue;
     }
 
     result.push(entry);

@@ -21,6 +21,7 @@ export async function GET() {
       companyName: user.companyName,
       qboName: user.qboName,
       phone: user.phone,
+      billingEmail: user.billingEmail,
     });
   }
 
@@ -33,6 +34,7 @@ export async function GET() {
     columns: {
       id: true, name: true, email: true,
       companyName: true, qboName: true, phone: true,
+      billingEmail: true,
     },
   });
 
@@ -64,6 +66,7 @@ export async function PUT(request: Request) {
     return NextResponse.json({
       id: updated.id, name: updated.name, email: updated.email,
       companyName: updated.companyName, qboName: updated.qboName, phone: updated.phone,
+      billingEmail: updated.billingEmail,
     });
   }
 
@@ -78,7 +81,21 @@ export async function PUT(request: Request) {
     .returning({
       id: users.id, name: users.name, email: users.email,
       companyName: users.companyName, qboName: users.qboName, phone: users.phone,
+      billingEmail: users.billingEmail,
     });
+
+  // On-save matching: link/unlink subscriptions for this user immediately
+  if (parsed.data.billingEmail !== undefined) {
+    try {
+      const { relinkSubscriptionsForUser } = await import("@/lib/subscription-sync");
+      await relinkSubscriptionsForUser(
+        session.user.id,
+        updated.billingEmail || null
+      );
+    } catch (err) {
+      console.error("Failed to relink subscriptions:", err);
+    }
+  }
 
   return NextResponse.json(updated);
 }

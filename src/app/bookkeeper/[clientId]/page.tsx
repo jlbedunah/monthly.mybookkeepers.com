@@ -3,7 +3,8 @@
 import { useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { signOut } from "next-auth/react";
-import { ArrowLeft, BookOpen, LogOut, FileText } from "lucide-react";
+import useSWR from "swr";
+import { ArrowLeft, BookOpen, LogOut, FileText, AlertTriangle } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { Card, CardHeader, CardContent } from "@/components/ui/Card";
 import { Spinner } from "@/components/ui/Spinner";
@@ -13,7 +14,7 @@ import { DownloadButton } from "@/components/bookkeeper/DownloadButton";
 import { useBookkeeperMonths } from "@/lib/hooks/useBookkeeperMonths";
 import { useBookkeeperPackage } from "@/lib/hooks/useBookkeeperPackage";
 import { MONTHS } from "@/lib/constants";
-import type { MonthlyPackageSummary, PackageStatus, InstitutionType } from "@/lib/types";
+import type { MonthlyPackageSummary, PackageStatus, InstitutionType, BookkeeperClient } from "@/lib/types";
 
 const INST_TYPE_LABELS: Record<InstitutionType, string> = {
   bank: "Bank",
@@ -38,6 +39,11 @@ export default function ClientDetailPage() {
     useBookkeeperMonths(clientId);
   const { pkg, isLoading: pkgLoading, mutate: mutatePkg } =
     useBookkeeperPackage(clientId, selectedMonthId);
+
+  // Fetch subscription status for this client
+  const { data: clients } = useSWR<BookkeeperClient[]>("/api/bookkeeper/clients");
+  const clientData = clients?.find((c) => c.id === clientId);
+  const isSubscriptionInactive = clientData?.subscriptionStatus === "inactive";
 
   // Auto-select first month when months load
   if (!selectedMonthId && months.length > 0) {
@@ -91,6 +97,20 @@ export default function ClientDetailPage() {
         <div className="grid grid-cols-1 gap-6 lg:grid-cols-[1fr_320px]">
           {/* Main content */}
           <div className="min-w-0 space-y-6">
+            {isSubscriptionInactive && (
+              <div className="flex items-center gap-3 rounded-lg border border-red-200 bg-red-50 px-4 py-3">
+                <AlertTriangle className="h-5 w-5 flex-shrink-0 text-red-600" />
+                <div>
+                  <p className="text-sm font-medium text-red-800">
+                    Client subscription is inactive
+                  </p>
+                  <p className="text-xs text-red-600">
+                    Status updates and downloads are disabled until subscription is resolved.
+                  </p>
+                </div>
+              </div>
+            )}
+
             {pkgLoading ? (
               <div className="flex justify-center py-12">
                 <Spinner />
@@ -104,20 +124,29 @@ export default function ClientDetailPage() {
                       <h2 className="text-lg font-semibold text-gray-900">
                         {MONTHS[pkg.month - 1]} {pkg.year}
                       </h2>
-                      <DownloadButton
-                        clientId={clientId}
-                        monthId={pkg.id}
-                        statementCount={pkg.statements.length}
-                      />
+                      {!isSubscriptionInactive && (
+                        <DownloadButton
+                          clientId={clientId}
+                          monthId={pkg.id}
+                          statementCount={pkg.statements.length}
+                        />
+                      )}
                     </div>
                   </CardHeader>
                   <CardContent>
-                    <StatusUpdateControl
-                      clientId={clientId}
-                      monthId={pkg.id}
-                      currentStatus={pkg.status}
-                      onUpdate={handleStatusUpdate}
-                    />
+                    {!isSubscriptionInactive ? (
+                      <StatusUpdateControl
+                        clientId={clientId}
+                        monthId={pkg.id}
+                        currentStatus={pkg.status}
+                        onUpdate={handleStatusUpdate}
+                      />
+                    ) : (
+                      <div className="flex items-center gap-2">
+                        <span className="text-sm text-gray-500">Status:</span>
+                        <StatusBadge status={pkg.status} />
+                      </div>
+                    )}
                   </CardContent>
                 </Card>
 

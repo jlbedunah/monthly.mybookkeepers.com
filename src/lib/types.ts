@@ -8,6 +8,7 @@ export interface BookkeeperClient {
   latestActivity: string | null;
   latestPackageStatus: PackageStatus | null;
   statementCount: number;
+  subscriptionStatus: "active" | "inactive";
 }
 
 export type PackageStatus =
@@ -27,6 +28,7 @@ export interface Client {
   companyName: string | null;
   qboName: string | null;
   phone: string | null;
+  billingEmail: string | null;
 }
 
 export interface Statement {

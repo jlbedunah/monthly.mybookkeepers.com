@@ -12,6 +12,7 @@ export type MockUser = {
   companyName: string | null;
   qboName: string | null;
   phone: string | null;
+  billingEmail: string | null;
   role: "client" | "bookkeeper";
   createdAt: Date;
   updatedAt: Date;
@@ -39,16 +40,29 @@ export type MockStatement = {
   uploadedAt: Date;
 };
 
+export type MockSubscription = {
+  id: string;
+  arbSubscriptionId: string;
+  name: string | null;
+  billingEmail: string | null;
+  amount: string | null;
+  status: "active" | "expired" | "suspended" | "canceled" | "terminated";
+  userId: string | null;
+  lastSyncedAt: Date;
+  createdAt: Date;
+};
+
 interface Store {
   users: MockUser[];
   packages: MockPackage[];
   statements: MockStatement[];
+  subscriptions: MockSubscription[];
   bookkeeperDataSeeded: boolean;
 }
 
 const g = globalThis as unknown as { __mockStore?: Store };
 if (!g.__mockStore) {
-  g.__mockStore = { users: [], packages: [], statements: [], bookkeeperDataSeeded: false };
+  g.__mockStore = { users: [], packages: [], statements: [], subscriptions: [], bookkeeperDataSeeded: false };
 }
 const store = g.__mockStore;
 
@@ -73,6 +87,7 @@ export function createUser(email: string, id?: string): MockUser {
     companyName: null,
     qboName: null,
     phone: null,
+    billingEmail: null,
     role,
     createdAt: new Date(),
     updatedAt: new Date(),
@@ -83,7 +98,7 @@ export function createUser(email: string, id?: string): MockUser {
 
 export function updateUser(
   id: string,
-  data: { name?: string; companyName?: string; qboName?: string; phone?: string }
+  data: { name?: string; companyName?: string; qboName?: string; phone?: string; billingEmail?: string }
 ) {
   const user = store.users.find((u) => u.id === id);
   if (!user) return null;
@@ -91,6 +106,7 @@ export function updateUser(
   if (data.companyName !== undefined) user.companyName = data.companyName;
   if (data.qboName !== undefined) user.qboName = data.qboName;
   if (data.phone !== undefined) user.phone = data.phone;
+  if (data.billingEmail !== undefined) user.billingEmail = data.billingEmail || null;
   user.updatedAt = new Date();
 
   // Seed history once, right after onboarding completes
@@ -232,6 +248,33 @@ export function getInstitutionsForUser(userId: string) {
   return Array.from(names).sort();
 }
 
+// ── Subscription operations ──
+
+export function getSubscriptionForUser(userId: string): {
+  hasActiveSubscription: boolean;
+  subscriptionName: string | null;
+  subscriptionAmount: string | null;
+  lastSyncedAt: string | null;
+} {
+  const sub = store.subscriptions.find(
+    (s) => s.userId === userId && s.status === "active"
+  );
+  if (!sub) {
+    return {
+      hasActiveSubscription: false,
+      subscriptionName: null,
+      subscriptionAmount: null,
+      lastSyncedAt: null,
+    };
+  }
+  return {
+    hasActiveSubscription: true,
+    subscriptionName: sub.name,
+    subscriptionAmount: sub.amount,
+    lastSyncedAt: sub.lastSyncedAt.toISOString(),
+  };
+}
+
 // ── Bookkeeper operations ──
 
 export function getAllClients() {
@@ -247,6 +290,10 @@ export function getAllClients() {
 
     const latestPkg = userPkgs[0] ?? null;
 
+    const hasActiveSub = store.subscriptions.some(
+      (s) => s.userId === u.id && s.status === "active"
+    );
+
     return {
       id: u.id,
       name: u.name,
@@ -255,6 +302,7 @@ export function getAllClients() {
       latestActivity: latestPkg ? latestPkg.createdAt.toISOString() : null,
       latestPackageStatus: latestPkg ? latestPkg.status : null,
       statementCount: stmtCount,
+      subscriptionStatus: hasActiveSub ? "active" as const : "inactive" as const,
     };
   });
 }
@@ -334,11 +382,24 @@ export function seedBookkeeperData() {
   store.bookkeeperDataSeeded = true;
 
   const now = new Date();
-  const mockClients = [
+  const mockClients: Array<{
+    name: string;
+    email: string;
+    company: string;
+    billingEmail: string | null;
+    subscriptionActive: boolean;
+    months: Array<{
+      monthsAgo: number;
+      status: string;
+      stmts: Array<{ inst: string; last4: string; type: string; file: string }>;
+    }>;
+  }> = [
     {
       name: "Sarah Johnson",
       email: "sarah@johnsonconsulting.com",
       company: "Johnson Consulting LLC",
+      billingEmail: "billing@johnsonconsulting.com",
+      subscriptionActive: true,
       months: [
         {
           monthsAgo: 1,
@@ -362,6 +423,8 @@ export function seedBookkeeperData() {
       name: "Mike Chen",
       email: "mike@chensrestaurant.com",
       company: "Chen's Restaurant Group",
+      billingEmail: "mike@chensrestaurant.com",
+      subscriptionActive: true,
       months: [
         {
           monthsAgo: 1,
@@ -389,6 +452,8 @@ export function seedBookkeeperData() {
       name: "Lisa Park",
       email: "lisa@parkdesignstudio.com",
       company: "Park Design Studio",
+      billingEmail: "billing@parkdesignstudio.com",
+      subscriptionActive: false,
       months: [
         {
           monthsAgo: 1,
@@ -405,6 +470,8 @@ export function seedBookkeeperData() {
       name: "David Kim",
       email: "david@kimplumbing.com",
       company: "Kim Plumbing & HVAC",
+      billingEmail: "david@kimplumbing.com",
+      subscriptionActive: false,
       months: [
         {
           monthsAgo: 1,
@@ -433,7 +500,23 @@ export function seedBookkeeperData() {
     const user = createUser(client.email);
     user.name = client.name;
     user.companyName = client.company;
+    user.billingEmail = client.billingEmail;
     user.role = "client";
+
+    // Create mock subscription
+    if (client.billingEmail) {
+      store.subscriptions.push({
+        id: crypto.randomUUID(),
+        arbSubscriptionId: `mock-arb-${user.id.slice(0, 8)}`,
+        name: `${client.company} Monthly`,
+        billingEmail: client.billingEmail,
+        amount: "350.00",
+        status: client.subscriptionActive ? "active" : "expired",
+        userId: user.id,
+        lastSyncedAt: new Date(),
+        createdAt: new Date(),
+      });
+    }
 
     for (const m of client.months) {
       const d = new Date(now.getFullYear(), now.getMonth() - m.monthsAgo, 1);

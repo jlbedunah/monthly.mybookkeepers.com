@@ -20,6 +20,8 @@ const FILTER_OPTIONS = [
   { value: "need_statements", label: "Need statements" },
   { value: "reconciling", label: "Reconciling" },
   { value: "no_uploads", label: "No uploads" },
+  { value: "sub_active", label: "Active subscription" },
+  { value: "sub_inactive", label: "No active subscription" },
 ];
 
 export function ClientListTable({ onSelectClient }: ClientListTableProps) {
@@ -77,40 +79,63 @@ export function ClientListTable({ onSelectClient }: ClientListTableProps) {
                 <tr className="border-b border-gray-200 text-gray-500">
                   <th className="pb-3 pr-4 font-medium">Client</th>
                   <th className="pb-3 pr-4 font-medium">Company</th>
+                  <th className="pb-3 pr-4 font-medium">Subscription</th>
                   <th className="pb-3 pr-4 font-medium">Latest Status</th>
                   <th className="pb-3 pr-4 font-medium text-right">Statements</th>
                 </tr>
               </thead>
               <tbody>
-                {clients.map((client) => (
-                  <tr
-                    key={client.id}
-                    onClick={() => onSelectClient(client)}
-                    className="cursor-pointer border-b border-gray-100 transition-colors hover:bg-gray-50"
-                  >
-                    <td className="py-3 pr-4">
-                      <div>
-                        <div className="font-medium text-gray-900">
-                          {client.name ?? "—"}
+                {clients.map((client) => {
+                  const isInactive = client.subscriptionStatus === "inactive";
+                  return (
+                    <tr
+                      key={client.id}
+                      onClick={() => {
+                        if (isInactive) return;
+                        onSelectClient(client);
+                      }}
+                      title={isInactive ? "Subscription inactive — cannot work on this client" : undefined}
+                      className={`border-b border-gray-100 transition-colors ${
+                        isInactive
+                          ? "opacity-50 cursor-not-allowed"
+                          : "cursor-pointer hover:bg-gray-50"
+                      }`}
+                    >
+                      <td className="py-3 pr-4">
+                        <div>
+                          <div className="font-medium text-gray-900">
+                            {client.name ?? "—"}
+                          </div>
+                          <div className="text-xs text-gray-500">{client.email}</div>
                         </div>
-                        <div className="text-xs text-gray-500">{client.email}</div>
-                      </div>
-                    </td>
-                    <td className="py-3 pr-4 text-gray-700">
-                      {client.companyName ?? "—"}
-                    </td>
-                    <td className="py-3 pr-4">
-                      {client.latestPackageStatus ? (
-                        <StatusBadge status={client.latestPackageStatus as PackageStatus} />
-                      ) : (
-                        <span className="text-gray-400">—</span>
-                      )}
-                    </td>
-                    <td className="py-3 pr-4 text-right text-gray-700">
-                      {client.statementCount}
-                    </td>
-                  </tr>
-                ))}
+                      </td>
+                      <td className="py-3 pr-4 text-gray-700">
+                        {client.companyName ?? "—"}
+                      </td>
+                      <td className="py-3 pr-4">
+                        {client.subscriptionStatus === "active" ? (
+                          <span className="inline-flex items-center rounded-full bg-green-100 px-2 py-0.5 text-xs font-medium text-green-800">
+                            Active
+                          </span>
+                        ) : (
+                          <span className="inline-flex items-center rounded-full bg-red-100 px-2 py-0.5 text-xs font-medium text-red-800">
+                            Inactive
+                          </span>
+                        )}
+                      </td>
+                      <td className="py-3 pr-4">
+                        {client.latestPackageStatus ? (
+                          <StatusBadge status={client.latestPackageStatus as PackageStatus} />
+                        ) : (
+                          <span className="text-gray-400">—</span>
+                        )}
+                      </td>
+                      <td className="py-3 pr-4 text-right text-gray-700">
+                        {client.statementCount}
+                      </td>
+                    </tr>
+                  );
+                })}
               </tbody>
             </table>
           </div>

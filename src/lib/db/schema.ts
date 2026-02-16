@@ -31,6 +31,14 @@ export const institutionTypeEnum = pgEnum("institution_type", [
   "other",
 ]);
 
+export const subscriptionStatusEnum = pgEnum("subscription_status", [
+  "active",
+  "expired",
+  "suspended",
+  "canceled",
+  "terminated",
+]);
+
 // NextAuth required tables
 export const users = pgTable("users", {
   id: uuid("id").defaultRandom().primaryKey(),
@@ -41,6 +49,7 @@ export const users = pgTable("users", {
   companyName: text("company_name"),
   qboName: text("qbo_name"),
   phone: text("phone"),
+  billingEmail: text("billing_email"),
   role: userRoleEnum("role").default("client").notNull(),
   createdAt: timestamp("created_at", { mode: "date" }).defaultNow().notNull(),
   updatedAt: timestamp("updated_at", { mode: "date" }).defaultNow().notNull(),
@@ -121,11 +130,24 @@ export const statements = pgTable("statements", {
   uploadedAt: timestamp("uploaded_at", { mode: "date" }).defaultNow().notNull(),
 });
 
+export const subscriptions = pgTable("subscriptions", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  arbSubscriptionId: text("arb_subscription_id").unique().notNull(),
+  name: text("name"),
+  billingEmail: text("billing_email"),
+  amount: text("amount"),
+  status: subscriptionStatusEnum("status").notNull(),
+  userId: uuid("user_id").references(() => users.id, { onDelete: "set null" }),
+  lastSyncedAt: timestamp("last_synced_at", { mode: "date" }).defaultNow().notNull(),
+  createdAt: timestamp("created_at", { mode: "date" }).defaultNow().notNull(),
+});
+
 // Relations
 export const usersRelations = relations(users, ({ many }) => ({
   accounts: many(accounts),
   sessions: many(sessions),
   monthlyPackages: many(monthlyPackages),
+  subscriptions: many(subscriptions),
 }));
 
 export const accountsRelations = relations(accounts, ({ one }) => ({
@@ -151,5 +173,12 @@ export const statementsRelations = relations(statements, ({ one }) => ({
   monthlyPackage: one(monthlyPackages, {
     fields: [statements.monthlyPackageId],
     references: [monthlyPackages.id],
+  }),
+}));
+
+export const subscriptionsRelations = relations(subscriptions, ({ one }) => ({
+  user: one(users, {
+    fields: [subscriptions.userId],
+    references: [users.id],
   }),
 }));

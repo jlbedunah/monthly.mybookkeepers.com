@@ -30,6 +30,17 @@ export async function PUT(
     );
   }
 
+  // Subscription guard (mock mode)
+  if (isMock) {
+    const sub = mock.getSubscriptionForUser(clientId);
+    if (!sub.hasActiveSubscription) {
+      return NextResponse.json(
+        { error: "Client subscription is inactive" },
+        { status: 403 }
+      );
+    }
+  }
+
   if (isMock) {
     const pkg = mock.getPackageByIdUnscoped(monthId);
     if (!pkg || pkg.userId !== clientId) {
@@ -45,6 +56,16 @@ export async function PUT(
     }
 
     return NextResponse.json({ success: true, status: parsed.data.status });
+  }
+
+  // Subscription guard (production)
+  const { hasActiveSubscription } = await import("@/lib/subscription-sync");
+  const isActive = await hasActiveSubscription(clientId);
+  if (!isActive) {
+    return NextResponse.json(
+      { error: "Client subscription is inactive" },
+      { status: 403 }
+    );
   }
 
   const { db } = await import("@/lib/db");

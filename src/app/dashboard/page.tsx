@@ -12,6 +12,7 @@ import { MonthlyHistory } from "@/components/dashboard/MonthlyHistory";
 import { useClient } from "@/lib/hooks/useClient";
 import { useMonthlyPackage } from "@/lib/hooks/useMonthlyPackage";
 import { useMonthlyHistory } from "@/lib/hooks/useMonthlyHistory";
+import { useSubscriptionStatus } from "@/lib/hooks/useSubscriptionStatus";
 import { createMonth } from "@/lib/api";
 import type { MonthlyPackageSummary } from "@/lib/types";
 
@@ -24,6 +25,7 @@ export default function DashboardPage() {
   const { client, mutate: mutateClient } = useClient();
   const { pkg, mutate: mutatePkg } = useMonthlyPackage(currentPackageId);
   const { history, mutate: mutateHistory } = useMonthlyHistory();
+  const { subscription } = useSubscriptionStatus();
 
   const ensurePackage = useCallback(
     async (month: number, year: number) => {
@@ -91,6 +93,32 @@ export default function DashboardPage() {
       <main className="mx-auto px-4 py-8">
         <div className="grid grid-cols-1 gap-6 lg:grid-cols-[1fr_320px]">
           <div className="min-w-0 space-y-6">
+            {subscription?.hasActiveSubscription === false && client?.billingEmail && (
+              <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3">
+                <p className="text-sm font-medium text-red-800">
+                  Subscription payment overdue — please update your payment method to continue service.
+                </p>
+              </div>
+            )}
+            {subscription?.hasActiveSubscription === true && (
+              <div className="flex items-center gap-2 rounded-lg border border-green-200 bg-green-50 px-4 py-3">
+                <span className="inline-flex items-center rounded-full bg-green-100 px-2.5 py-0.5 text-xs font-medium text-green-800">
+                  Active
+                </span>
+                <span className="text-sm text-green-700">
+                  Subscription{subscription.subscriptionName ? `: ${subscription.subscriptionName}` : ""}
+                  {subscription.subscriptionAmount ? ` — $${subscription.subscriptionAmount}/mo` : ""}
+                </span>
+              </div>
+            )}
+            {client && !client.billingEmail && (
+              <div className="rounded-lg border border-gray-200 bg-gray-50 px-4 py-3">
+                <p className="text-sm text-gray-600">
+                  Add your billing email in your profile to check subscription status.
+                </p>
+              </div>
+            )}
+
             <ClientInfoCard client={client} onUpdate={mutateClient} />
 
             <MonthSelector

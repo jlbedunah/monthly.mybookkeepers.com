@@ -27,6 +27,7 @@ export function ClientInfoCard({ client, onUpdate }: ClientInfoCardProps) {
       companyName: client?.companyName || "",
       qboName: client?.qboName || "",
       phone: client?.phone || "",
+      billingEmail: client?.billingEmail || "",
     },
   });
 
@@ -82,6 +83,12 @@ export function ClientInfoCard({ client, onUpdate }: ClientInfoCardProps) {
                 label="Phone"
                 {...register("phone")}
               />
+              <Input
+                id="edit-billingEmail"
+                label="Billing Email"
+                placeholder="billing@yourcompany.com"
+                {...register("billingEmail")}
+              />
             </div>
             <div className="flex gap-2">
               <Button type="submit" size="sm" isLoading={isSaving}>
@@ -124,6 +131,14 @@ export function ClientInfoCard({ client, onUpdate }: ClientInfoCardProps) {
               <span className="text-gray-500">Email:</span>{" "}
               <span className="font-medium text-gray-900">{client.email}</span>
             </div>
+            {client.billingEmail && (
+              <div>
+                <span className="text-gray-500">Billing Email:</span>{" "}
+                <span className="font-medium text-gray-900">
+                  {client.billingEmail}
+                </span>
+              </div>
+            )}
             {client.qboName && (
               <div>
                 <span className="text-gray-500">QBO:</span>{" "}
@@ -150,6 +165,7 @@ export function ClientInfoCard({ client, onUpdate }: ClientInfoCardProps) {
                 companyName: client.companyName || "",
                 qboName: client.qboName || "",
                 phone: client.phone || "",
+                billingEmail: client.billingEmail || "",
               });
               setIsEditing(true);
             }}

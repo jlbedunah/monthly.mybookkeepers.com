@@ -56,6 +56,96 @@ export async function sendSubmissionNotification({
   });
 }
 
+interface OverdueClientNotificationParams {
+  clientName: string;
+  clientEmail: string;
+  companyName: string;
+  month: string;
+  year: number;
+}
+
+export async function sendOverdueNotificationToClient({
+  clientName,
+  clientEmail,
+  companyName,
+  month,
+  year,
+}: OverdueClientNotificationParams) {
+  const html = `
+    <div style="font-family:sans-serif;max-width:600px;margin:0 auto">
+      <h2 style="color:#991b1b">Subscription Payment Overdue</h2>
+      <p>Hi ${clientName || "there"},</p>
+      <p>Your subscription payment for <strong>${month} ${year}</strong> has not been received.</p>
+      <p><strong>Company:</strong> ${companyName}</p>
+      <p>Please update your payment method to continue receiving bookkeeping services. If you believe this is an error, please contact us.</p>
+      <p style="margin-top:24px">Thank you,</p>
+      <p style="color:#6b7280;font-size:14px">— The MyBookkeepers.com Team</p>
+    </div>
+  `;
+
+  await resend.emails.send({
+    from: "MyBookkeepers.com <noreply@mybookkeepers.com>",
+    to: clientEmail,
+    subject: `Subscription payment overdue — ${companyName || "Action Required"}`,
+    html,
+  });
+}
+
+interface OverdueSummaryParams {
+  overdueClients: Array<{
+    clientName: string;
+    companyName: string;
+    billingEmail: string;
+    clientEmail: string;
+  }>;
+  month: string;
+  year: number;
+}
+
+export async function sendOverdueSummaryToBookkeeper({
+  overdueClients,
+  month,
+  year,
+}: OverdueSummaryParams) {
+  const rows = overdueClients
+    .map(
+      (c) =>
+        `<tr>
+          <td style="padding:8px;border:1px solid #e5e7eb">${c.clientName}</td>
+          <td style="padding:8px;border:1px solid #e5e7eb">${c.companyName}</td>
+          <td style="padding:8px;border:1px solid #e5e7eb">${c.clientEmail}</td>
+          <td style="padding:8px;border:1px solid #e5e7eb">${c.billingEmail}</td>
+        </tr>`
+    )
+    .join("");
+
+  const html = `
+    <div style="font-family:sans-serif;max-width:700px;margin:0 auto">
+      <h2 style="color:#991b1b">Overdue Subscription Summary — ${month} ${year}</h2>
+      <p>${overdueClients.length} client(s) do not have an active subscription as of the 4th:</p>
+      <table style="border-collapse:collapse;width:100%">
+        <thead>
+          <tr style="background:#f3f4f6">
+            <th style="padding:8px;border:1px solid #e5e7eb;text-align:left">Client</th>
+            <th style="padding:8px;border:1px solid #e5e7eb;text-align:left">Company</th>
+            <th style="padding:8px;border:1px solid #e5e7eb;text-align:left">Login Email</th>
+            <th style="padding:8px;border:1px solid #e5e7eb;text-align:left">Billing Email</th>
+          </tr>
+        </thead>
+        <tbody>${rows}</tbody>
+      </table>
+      <p style="margin-top:16px;color:#6b7280;font-size:14px">These clients are locked out from bookkeeping services until their subscription is resolved.</p>
+    </div>
+  `;
+
+  await resend.emails.send({
+    from: "MyBookkeepers.com <noreply@mybookkeepers.com>",
+    to: process.env.NOTIFICATION_EMAIL!,
+    subject: `Overdue Subscriptions — ${month} ${year} (${overdueClients.length} clients)`,
+    html,
+  });
+}
+
 interface CompletionNotificationParams {
   clientName: string;
   clientEmail: string;

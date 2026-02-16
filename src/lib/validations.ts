@@ -5,6 +5,14 @@ export const updateUserSchema = z.object({
   companyName: z.string().min(1, "Company name is required").max(200),
   qboName: z.string().max(200).optional().default(""),
   phone: z.string().max(20).optional().default(""),
+  billingEmail: z
+    .string()
+    .max(200)
+    .optional()
+    .default("")
+    .refine((val) => val === "" || /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(val), {
+      message: "Invalid email",
+    }),
 });
 
 export const createMonthSchema = z.object({

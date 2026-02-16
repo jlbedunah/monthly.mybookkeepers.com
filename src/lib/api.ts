@@ -70,6 +70,18 @@ export async function submitPackage(packageId: string) {
   });
 }
 
+// ── Subscription helpers ──
+
+export async function triggerSubscriptionSync(): Promise<{
+  success: boolean;
+  totalSubscriptions: number;
+  matchedUsers: number;
+}> {
+  return fetchJson("/api/bookkeeper/sync", {
+    method: "POST",
+  });
+}
+
 // ── Bookkeeper API helpers ──
 
 export async function updatePackageStatus(
