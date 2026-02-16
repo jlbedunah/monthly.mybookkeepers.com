@@ -16,7 +16,11 @@ export const authConfig = {
         nextUrl.pathname.startsWith("/favicon") ||
         nextUrl.pathname === "/robots.txt";
 
-      if (isStaticRoute || isAuthRoute) return true;
+      const isStartMonthly =
+        nextUrl.pathname === "/start-monthly" ||
+        nextUrl.pathname === "/api/start-monthly";
+
+      if (isStaticRoute || isAuthRoute || isStartMonthly) return true;
 
       if (isOnLoginPage || isOnVerifyPage) {
         if (isLoggedIn) {

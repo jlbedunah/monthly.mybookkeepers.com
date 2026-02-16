@@ -107,6 +107,70 @@ export async function getSubscriptionDetail(
 }
 
 /**
+ * Create an ARB subscription using an opaque payment nonce from Accept.js.
+ */
+export async function createARBSubscription({
+  name,
+  email,
+  companyName,
+  opaqueData,
+  amount,
+}: {
+  name: string;
+  email: string;
+  companyName: string;
+  opaqueData: { dataDescriptor: string; dataValue: string };
+  amount: number;
+}): Promise<{ subscriptionId: string } | { error: string }> {
+  // Split name into first/last
+  const parts = name.trim().split(/\s+/);
+  const firstName = parts[0] || name;
+  const lastName = parts.slice(1).join(" ") || name;
+
+  // Start date: today in YYYY-MM-DD format
+  const now = new Date();
+  const startDate = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}`;
+
+  const response = (await apiCall({
+    ARBCreateSubscriptionRequest: {
+      merchantAuthentication: merchantAuth(),
+      subscription: {
+        name: `${companyName} Monthly Bookkeeping`,
+        paymentSchedule: {
+          interval: { length: 1, unit: "months" },
+          startDate,
+          totalOccurrences: 9999,
+        },
+        amount,
+        payment: {
+          opaqueData: {
+            dataDescriptor: opaqueData.dataDescriptor,
+            dataValue: opaqueData.dataValue,
+          },
+        },
+        customer: { email },
+        billTo: { firstName, lastName },
+      },
+    },
+  })) as {
+    subscriptionId?: string;
+    messages?: {
+      resultCode: string;
+      message?: Array<{ code: string; text: string }>;
+    };
+  };
+
+  if (response.messages?.resultCode !== "Ok" || !response.subscriptionId) {
+    const msg =
+      response.messages?.message?.[0]?.text ?? "Failed to create subscription";
+    console.error("[authorizenet] ARB create failed:", msg);
+    return { error: msg };
+  }
+
+  return { subscriptionId: response.subscriptionId };
+}
+
+/**
  * Fetch subscription details in parallel with chunked concurrency.
  */
 export async function getSubscriptionDetailsBatch(

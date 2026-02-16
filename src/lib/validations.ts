@@ -37,6 +37,16 @@ export const updatePackageStatusSchema = z.object({
   ]),
 });
 
+export const startMonthlySchema = z.object({
+  name: z.string().min(1, "Name is required").max(100),
+  email: z.string().email("Invalid email").max(200),
+  companyName: z.string().min(1, "Company name is required").max(200),
+  opaqueData: z.object({
+    dataDescriptor: z.string(),
+    dataValue: z.string(),
+  }),
+});
+
 export type UpdateUserInput = z.infer<typeof updateUserSchema>;
 export type CreateMonthInput = z.infer<typeof createMonthSchema>;
 export type UploadStatementInput = z.infer<typeof uploadStatementSchema>;
