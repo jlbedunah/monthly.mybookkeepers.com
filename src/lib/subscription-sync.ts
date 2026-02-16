@@ -102,6 +102,39 @@ export async function syncSubscriptions(triggeredBy: "cron" | "manual") {
     `[subscription-sync] Sync complete: ${details.length} subscriptions, ${matchedUsers} matched users`
   );
 
+  // Sync GHL tags: tag overdue clients, untag active clients
+  try {
+    const { syncGHLTags } = await import("@/lib/gohighlevel");
+
+    // Clients with billing email but no active subscription → overdue
+    const overdueRows = await db.execute(sql`
+      SELECT u.email FROM users u
+      WHERE u.role = 'client'
+        AND u.billing_email IS NOT NULL AND u.billing_email != ''
+        AND NOT EXISTS (
+          SELECT 1 FROM subscriptions s
+          WHERE s.user_id = u.id AND s.status = 'active'
+        )
+    `) as unknown as Array<{ email: string }>;
+
+    // Clients with an active subscription → active
+    const activeRows = await db.execute(sql`
+      SELECT u.email FROM users u
+      WHERE u.role = 'client'
+        AND EXISTS (
+          SELECT 1 FROM subscriptions s
+          WHERE s.user_id = u.id AND s.status = 'active'
+        )
+    `) as unknown as Array<{ email: string }>;
+
+    await syncGHLTags(
+      overdueRows.map((r) => r.email),
+      activeRows.map((r) => r.email)
+    );
+  } catch (err) {
+    console.error("[subscription-sync] GHL tag sync failed:", err);
+  }
+
   return { totalSubscriptions: details.length, matchedUsers };
 }
 
