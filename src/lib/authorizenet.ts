@@ -85,6 +85,7 @@ export async function getSubscriptionDetail(
       status?: string;
       amount?: number;
       profile?: {
+        email?: string;
         paymentProfile?: {
           billTo?: { email?: string };
         };
@@ -99,7 +100,9 @@ export async function getSubscriptionDetail(
     status: sub.status ?? "active",
     amount: sub.amount != null ? String(sub.amount) : null,
     billingEmail:
-      sub.profile?.paymentProfile?.billTo?.email ?? null,
+      sub.profile?.email ??
+      sub.profile?.paymentProfile?.billTo?.email ??
+      null,
   };
 }
 
