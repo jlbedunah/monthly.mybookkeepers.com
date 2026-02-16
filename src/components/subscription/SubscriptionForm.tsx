@@ -32,8 +32,12 @@ interface AcceptResponse {
   };
 }
 
-const CLIENT_KEY = process.env.NEXT_PUBLIC_AUTHORIZE_NET_CLIENT_KEY ?? "";
-const LOGIN_ID = process.env.NEXT_PUBLIC_AUTHORIZE_NET_LOGIN_ID ?? "";
+// Public client-side keys — safe to hardcode (can only tokenize cards, not charge)
+const CLIENT_KEY =
+  process.env.NEXT_PUBLIC_AUTHORIZE_NET_CLIENT_KEY ||
+  "24pymCMcAQ4Es4TUQgT6656tRn5S7BuQ6UfWd6dwtKkQKdujDXCNX2fj47UscyTy";
+const LOGIN_ID =
+  process.env.NEXT_PUBLIC_AUTHORIZE_NET_LOGIN_ID || "2ww69CxS9enB";
 
 export function SubscriptionForm() {
   const [name, setName] = useState("");
