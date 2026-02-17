@@ -16,7 +16,7 @@ export async function POST(request: Request) {
     );
   }
 
-  const { name, email, companyName, opaqueData } = parsed.data;
+  const { name, email, companyName, cardNumber, expirationDate, cardCode } = parsed.data;
 
   const { db } = await import("@/lib/db");
   const { users, subscriptions } = await import("@/lib/db/schema");
@@ -38,7 +38,9 @@ export async function POST(request: Request) {
     name,
     email,
     companyName,
-    opaqueData,
+    cardNumber,
+    expirationDate,
+    cardCode,
     amount: SUBSCRIPTION_AMOUNT,
   });
 
