@@ -114,6 +114,11 @@ export async function getSubscriptionDetail(
 
 /**
  * Create an ARB subscription using an opaque payment nonce from Accept.js.
+ *
+ * ARB doesn't accept opaqueData directly (E00114), so we:
+ * 1. Create a CIM customer profile with the token
+ * 2. Wait briefly for propagation
+ * 3. Create the ARB subscription using the profile
  */
 export async function createARBSubscription({
   name,
@@ -128,16 +133,65 @@ export async function createARBSubscription({
   opaqueData: { dataDescriptor: string; dataValue: string };
   amount: number;
 }): Promise<{ subscriptionId: string } | { error: string }> {
-  // Split name into first/last
   const parts = name.trim().split(/\s+/);
   const firstName = parts[0] || name;
   const lastName = parts.slice(1).join(" ") || name;
 
-  // Start date: today in YYYY-MM-DD format
+  // Step 1: Create customer profile with the Accept.js token
+  const profileResponse = (await apiCall({
+    createCustomerProfileRequest: {
+      merchantAuthentication: merchantAuth(),
+      profile: {
+        email,
+        paymentProfiles: [
+          {
+            billTo: { firstName, lastName },
+            payment: {
+              opaqueData: {
+                dataDescriptor: opaqueData.dataDescriptor,
+                dataValue: opaqueData.dataValue,
+              },
+            },
+          },
+        ],
+      },
+    },
+  })) as {
+    customerProfileId?: string;
+    customerPaymentProfileIdList?: string[];
+    messages?: {
+      resultCode: string;
+      message?: Array<{ code: string; text: string }>;
+    };
+  };
+
+  if (
+    profileResponse.messages?.resultCode !== "Ok" ||
+    !profileResponse.customerProfileId
+  ) {
+    const msg =
+      profileResponse.messages?.message?.[0]?.text ??
+      "Failed to create payment profile";
+    console.error("[authorizenet] CIM profile create failed:", msg);
+    return { error: msg };
+  }
+
+  const customerProfileId = profileResponse.customerProfileId;
+  const customerPaymentProfileId =
+    profileResponse.customerPaymentProfileIdList?.[0];
+
+  if (!customerPaymentProfileId) {
+    return { error: "Payment profile was not created" };
+  }
+
+  // Step 2: Brief delay for profile propagation
+  await new Promise((r) => setTimeout(r, 2000));
+
+  // Step 3: Create ARB subscription using the customer profile
   const now = new Date();
   const startDate = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}`;
 
-  const response = (await apiCall({
+  const arbResponse = (await apiCall({
     ARBCreateSubscriptionRequest: {
       merchantAuthentication: merchantAuth(),
       subscription: {
@@ -148,14 +202,10 @@ export async function createARBSubscription({
           totalOccurrences: 9999,
         },
         amount,
-        payment: {
-          opaqueData: {
-            dataDescriptor: opaqueData.dataDescriptor,
-            dataValue: opaqueData.dataValue,
-          },
+        profile: {
+          customerProfileId,
+          customerPaymentProfileId,
         },
-        customer: { email },
-        billTo: { firstName, lastName },
       },
     },
   })) as {
@@ -166,14 +216,15 @@ export async function createARBSubscription({
     };
   };
 
-  if (response.messages?.resultCode !== "Ok" || !response.subscriptionId) {
+  if (arbResponse.messages?.resultCode !== "Ok" || !arbResponse.subscriptionId) {
     const msg =
-      response.messages?.message?.[0]?.text ?? "Failed to create subscription";
+      arbResponse.messages?.message?.[0]?.text ??
+      "Failed to create subscription";
     console.error("[authorizenet] ARB create failed:", msg);
     return { error: msg };
   }
 
-  return { subscriptionId: response.subscriptionId };
+  return { subscriptionId: arbResponse.subscriptionId };
 }
 
 /**
