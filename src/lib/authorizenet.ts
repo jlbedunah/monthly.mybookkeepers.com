@@ -69,7 +69,9 @@ async function chargeCustomerProfile({
   };
 
   const txn = response.transactionResponse;
-  if (response.messages?.resultCode !== "Ok" || !txn || txn.responseCode !== "1") {
+  // responseCode "1" = approved, "4" = held for FDS review (still authorized)
+  const approved = txn?.responseCode === "1" || txn?.responseCode === "4";
+  if (response.messages?.resultCode !== "Ok" || !txn || !approved) {
     const msg =
       txn?.errors?.[0]?.errorText ??
       response.messages?.message?.[0]?.text ??
