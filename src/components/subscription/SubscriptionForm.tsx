@@ -87,15 +87,13 @@ export function SubscriptionForm() {
         return;
       }
 
-      // Tokenize card via Accept.js (official 2-arg format)
-      const secureData = {
-        authData: { clientKey, apiLoginID },
-        cardData: {
-          cardNumber: cardNumber.replace(/\s/g, ""),
-          month: expMonth,
-          year: expYear.length === 2 ? `20${expYear}` : expYear,
-          cardCode: cvv,
-        },
+      // Tokenize card via Accept.js (3-arg format matching working cart)
+      const authData = { clientKey, apiLoginID };
+      const cardData = {
+        cardNumber: cardNumber.replace(/\s/g, ""),
+        month: expMonth,
+        year: expYear.length === 2 ? `20${expYear}` : expYear,
+        cardCode: cvv,
       };
 
       const timeout = setTimeout(() => {
@@ -104,7 +102,7 @@ export function SubscriptionForm() {
       }, 15000);
 
       try {
-        Accept.dispatchData(secureData, async (response: AcceptResponse) => {
+        Accept.dispatchData(authData, cardData, async (response: AcceptResponse) => {
           clearTimeout(timeout);
 
           if (response.messages.resultCode === "Error") {
