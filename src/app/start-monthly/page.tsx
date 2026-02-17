@@ -14,7 +14,17 @@ import {
 } from "lucide-react";
 import { SubscriptionForm } from "@/components/subscription/SubscriptionForm";
 
+export const dynamic = "force-dynamic";
+
+function getNextMonthLabel(): string {
+  const now = new Date();
+  const next = new Date(now.getFullYear(), now.getMonth() + 1, 2);
+  return next.toLocaleDateString("en-US", { month: "long" });
+}
+
 export default function StartMonthlyPage() {
+  const nextMonth = getNextMonthLabel();
+
   return (
     <div className="min-h-screen">
       {/* Hero Section */}
@@ -26,7 +36,10 @@ export default function StartMonthlyPage() {
           <p className="mt-2 text-5xl font-extrabold md:text-6xl">
             $189<span className="text-2xl font-medium md:text-3xl">/month</span>
           </p>
-          <p className="mt-4 text-lg text-red-100 md:text-xl">
+          <p className="mt-3 text-base text-red-100 md:text-lg">
+            $189 today, then $189/month starting {nextMonth} 2nd
+          </p>
+          <p className="mt-3 text-lg text-red-100 md:text-xl">
             Unlimited Transactions. Unlimited Bank Accounts.
           </p>
           <p className="mt-2 text-sm text-red-200">
@@ -269,7 +282,7 @@ export default function StartMonthlyPage() {
               Get Started Today
             </h2>
             <p className="mt-1 text-sm text-gray-500">
-              $189/month — Cancel anytime
+              $189 today, then $189/month starting {nextMonth} 2nd — Cancel anytime
             </p>
           </div>
           <div className="rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
