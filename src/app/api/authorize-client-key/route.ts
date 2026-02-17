@@ -6,7 +6,11 @@ export async function GET() {
 
   if (!clientKey || !apiLoginID) {
     return NextResponse.json(
-      { error: "Authorize.net credentials not configured" },
+      {
+        error: "Authorize.net credentials not configured",
+        hasClientKey: !!clientKey,
+        hasLoginID: !!apiLoginID,
+      },
       { status: 500 }
     );
   }
