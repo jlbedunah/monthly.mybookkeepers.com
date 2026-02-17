@@ -3,8 +3,14 @@
  * Uses fetch() against the JSON API directly — no npm dependency.
  */
 
-const API_LOGIN_ID = process.env.AUTHORIZE_NET_LOGIN_ID_PROD ?? "";
-const TRANSACTION_KEY = process.env.AUTHORIZE_NET_TRANSACTION_KEY_PROD ?? "";
+const API_LOGIN_ID =
+  process.env.AUTHORIZE_NET_LOGIN_ID_PROD ||
+  process.env.AUTHORIZE_NET_LOGIN_ID ||
+  "";
+const TRANSACTION_KEY =
+  process.env.AUTHORIZE_NET_TRANSACTION_KEY_PROD ||
+  process.env.AUTHORIZE_NET_TRANSACTION_KEY ||
+  "";
 
 const ENDPOINT = "https://api.authorize.net/xml/v1/request.api";
 
