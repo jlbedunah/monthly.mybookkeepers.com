@@ -106,12 +106,21 @@ export function SubscriptionForm() {
         Accept.dispatchData(secureData, async (response: AcceptResponse) => {
           clearTimeout(timeout);
 
+          console.log("Accept.js full response:", JSON.stringify(response));
+
           if (response.messages.resultCode === "Error") {
             setError(
               response.messages.message
                 .map((m: { text: string }) => m.text)
                 .join(". ")
             );
+            setIsLoading(false);
+            return;
+          }
+
+          if (!response.opaqueData) {
+            console.error("Accept.js returned Ok but no opaqueData:", response);
+            setError("Payment token missing. Please try again.");
             setIsLoading(false);
             return;
           }
