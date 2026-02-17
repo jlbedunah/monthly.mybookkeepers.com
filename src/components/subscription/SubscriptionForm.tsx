@@ -9,14 +9,12 @@ declare global {
   interface Window {
     Accept: {
       dispatchData(
-        secureData: {
-          authData: { clientKey: string; apiLoginID: string };
-          cardData: {
-            cardNumber: string;
-            month: string;
-            year: string;
-            cardCode: string;
-          };
+        authData: { clientKey: string; apiLoginID: string },
+        cardData: {
+          cardNumber: string;
+          month: string;
+          year: string;
+          cardCode: string;
         },
         callback: (response: AcceptResponse) => void
       ): void;
@@ -88,16 +86,14 @@ export function SubscriptionForm() {
 
       setIsLoading(true);
 
-      // Tokenize card via Accept.js
+      // Tokenize card via Accept.js (3 args: authData, cardData, callback)
       window.Accept.dispatchData(
+        { clientKey: CLIENT_KEY, apiLoginID: LOGIN_ID },
         {
-          authData: { clientKey: CLIENT_KEY, apiLoginID: LOGIN_ID },
-          cardData: {
-            cardNumber: cardNumber.replace(/\s/g, ""),
-            month: expMonth,
-            year: expYear.length === 2 ? `20${expYear}` : expYear,
-            cardCode: cvv,
-          },
+          cardNumber: cardNumber.replace(/\s/g, ""),
+          month: expMonth,
+          year: expYear.length === 2 ? `20${expYear}` : expYear,
+          cardCode: cvv,
         },
         async (response: AcceptResponse) => {
           if (response.messages.resultCode === "Error") {
