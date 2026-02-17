@@ -113,23 +113,19 @@ export async function getSubscriptionDetail(
 }
 
 /**
- * Create an ARB subscription using raw card details (server-side).
+ * Create an ARB subscription using an opaque payment nonce from Accept.js.
  */
 export async function createARBSubscription({
   name,
   email,
   companyName,
-  cardNumber,
-  expirationDate,
-  cardCode,
+  opaqueData,
   amount,
 }: {
   name: string;
   email: string;
   companyName: string;
-  cardNumber: string;
-  expirationDate: string;
-  cardCode: string;
+  opaqueData: { dataDescriptor: string; dataValue: string };
   amount: number;
 }): Promise<{ subscriptionId: string } | { error: string }> {
   // Split name into first/last
@@ -153,10 +149,9 @@ export async function createARBSubscription({
         },
         amount,
         payment: {
-          creditCard: {
-            cardNumber,
-            expirationDate,
-            cardCode,
+          opaqueData: {
+            dataDescriptor: opaqueData.dataDescriptor,
+            dataValue: opaqueData.dataValue,
           },
         },
         customer: { email },

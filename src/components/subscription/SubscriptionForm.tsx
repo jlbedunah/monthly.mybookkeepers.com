@@ -1,9 +1,22 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { CheckCircle } from "lucide-react";
+
+declare global {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const Accept: any;
+}
+
+interface AcceptResponse {
+  opaqueData?: { dataDescriptor: string; dataValue: string };
+  messages: {
+    resultCode: "Ok" | "Error";
+    message: Array<{ code: string; text: string }>;
+  };
+}
 
 export function SubscriptionForm() {
   const [name, setName] = useState("");
@@ -15,11 +28,29 @@ export function SubscriptionForm() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
+  const [scriptLoaded, setScriptLoaded] = useState(false);
+
+  useEffect(() => {
+    if (typeof window !== "undefined" && typeof Accept !== "undefined") {
+      setScriptLoaded(true);
+      return;
+    }
+    const script = document.createElement("script");
+    script.src = "https://js.authorize.net/v1/Accept.js";
+    script.charset = "utf-8";
+    script.onload = () => setScriptLoaded(true);
+    document.head.appendChild(script);
+  }, []);
 
   const handleSubmit = useCallback(
     async (e: React.FormEvent) => {
       e.preventDefault();
       setError(null);
+
+      if (!scriptLoaded) {
+        setError("Payment system is loading. Please try again.");
+        return;
+      }
 
       if (!name || !email || !companyName || !cardNumber || !expDate || !cvv) {
         setError("Please fill out all fields.");
@@ -33,43 +64,94 @@ export function SubscriptionForm() {
         return;
       }
       const [expMonth, expYear] = expParts;
-      const fullYear = expYear.length === 2 ? `20${expYear}` : expYear;
-
-      // Authorize.net expects YYYY-MM for ARB
-      const expirationDate = `${fullYear}-${expMonth.padStart(2, "0")}`;
 
       setIsLoading(true);
 
+      // Fetch credentials from server at runtime
+      let clientKey: string;
+      let apiLoginID: string;
       try {
-        const res = await fetch("/api/start-monthly", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            name,
-            email,
-            companyName,
-            cardNumber: cardNumber.replace(/\s/g, ""),
-            expirationDate,
-            cardCode: cvv,
-          }),
-        });
-
-        const data = await res.json();
-
-        if (!res.ok) {
-          setError(data.error || "Something went wrong. Please try again.");
+        const credRes = await fetch("/api/authorize-client-key");
+        const credData = await credRes.json();
+        if (!credRes.ok || !credData.clientKey || !credData.apiLoginID) {
+          setError("Payment system unavailable. Please try again later.");
           setIsLoading(false);
           return;
         }
-
-        setSuccess(true);
+        clientKey = credData.clientKey;
+        apiLoginID = credData.apiLoginID;
       } catch {
-        setError("Network error. Please try again.");
-      } finally {
+        setError("Failed to initialize payment. Please try again.");
+        setIsLoading(false);
+        return;
+      }
+
+      // Tokenize card via Accept.js
+      const secureData = {
+        authData: { clientKey, apiLoginID },
+        cardData: {
+          cardNumber: cardNumber.replace(/\s/g, ""),
+          month: expMonth,
+          year: expYear.length === 2 ? `20${expYear}` : expYear,
+          cardCode: cvv,
+        },
+      };
+
+      const timeout = setTimeout(() => {
+        setError("Payment request timed out. Please try again.");
+        setIsLoading(false);
+      }, 15000);
+
+      try {
+        Accept.dispatchData(secureData, async (response: AcceptResponse) => {
+          clearTimeout(timeout);
+
+          if (response.messages.resultCode === "Error") {
+            setError(
+              response.messages.message
+                .map((m: { text: string }) => m.text)
+                .join(". ")
+            );
+            setIsLoading(false);
+            return;
+          }
+
+          // Send to our API
+          try {
+            const res = await fetch("/api/start-monthly", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                name,
+                email,
+                companyName,
+                opaqueData: response.opaqueData,
+              }),
+            });
+
+            const data = await res.json();
+
+            if (!res.ok) {
+              setError(data.error || "Something went wrong. Please try again.");
+              setIsLoading(false);
+              return;
+            }
+
+            setSuccess(true);
+          } catch {
+            setError("Network error. Please try again.");
+          } finally {
+            setIsLoading(false);
+          }
+        });
+      } catch (err) {
+        clearTimeout(timeout);
+        console.error("Accept.js dispatch error:", err);
+        setError("Failed to process card. Please try again.");
         setIsLoading(false);
       }
     },
-    [name, email, companyName, cardNumber, expDate, cvv]
+    [name, email, companyName, cardNumber, expDate, cvv, scriptLoaded]
   );
 
   if (success) {
@@ -158,6 +240,7 @@ export function SubscriptionForm() {
         className="w-full"
         size="lg"
         isLoading={isLoading}
+        disabled={!scriptLoaded}
       >
         Subscribe — $189/mo
       </Button>
