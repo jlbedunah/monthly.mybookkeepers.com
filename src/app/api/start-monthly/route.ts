@@ -10,8 +10,12 @@ export async function POST(request: Request) {
   const parsed = startMonthlySchema.safeParse(body);
 
   if (!parsed.success) {
+    const flat = parsed.error.flatten();
+    const fieldErrors = Object.entries(flat.fieldErrors)
+      .map(([k, v]) => `${k}: ${(v as string[]).join(", ")}`)
+      .join("; ");
     return NextResponse.json(
-      { error: "Validation failed", details: parsed.error.flatten() },
+      { error: fieldErrors || "Validation failed", details: flat },
       { status: 400 }
     );
   }
