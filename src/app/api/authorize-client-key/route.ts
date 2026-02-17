@@ -17,5 +17,8 @@ export async function GET() {
     );
   }
 
-  return NextResponse.json({ clientKey, apiLoginID });
+  return NextResponse.json({
+    clientKey: clientKey.trim(),
+    apiLoginID: apiLoginID.trim(),
+  });
 }
