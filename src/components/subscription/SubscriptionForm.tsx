@@ -48,8 +48,15 @@ export function SubscriptionForm() {
       e.preventDefault();
       setError(null);
 
-      if (!scriptLoaded) {
+      if (!scriptLoaded || typeof Accept === "undefined") {
         setError("Payment system is loading. Please try again.");
+        return;
+      }
+
+      // Check if AcceptCore.js has finished loading
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      if (!(window as any).isReady) {
+        setError("Payment system is still initializing. Please wait a moment and try again.");
         return;
       }
 
@@ -87,13 +94,24 @@ export function SubscriptionForm() {
         return;
       }
 
-      // Tokenize card via Accept.js (3-arg format matching working cart)
-      const authData = { clientKey, apiLoginID };
-      const cardData = {
-        cardNumber: cardNumber.replace(/\s/g, ""),
-        month: expMonth,
-        year: expYear.length === 2 ? `20${expYear}` : expYear,
-        cardCode: cvv,
+      console.log("Accept.js credentials:", {
+        apiLoginID: apiLoginID?.substring(0, 4) + "****",
+        clientKey: clientKey?.substring(0, 4) + "****",
+        apiLoginIDLen: apiLoginID?.length,
+        clientKeyLen: clientKey?.length,
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        isReady: (window as any).isReady,
+      });
+
+      // Tokenize card via Accept.js (2-arg format per Accept.js source)
+      const secureData = {
+        authData: { clientKey, apiLoginID },
+        cardData: {
+          cardNumber: cardNumber.replace(/\s/g, ""),
+          month: expMonth,
+          year: expYear.length === 2 ? `20${expYear}` : expYear,
+          cardCode: cvv,
+        },
       };
 
       const timeout = setTimeout(() => {
@@ -102,15 +120,15 @@ export function SubscriptionForm() {
       }, 15000);
 
       try {
-        Accept.dispatchData(authData, cardData, async (response: AcceptResponse) => {
+        Accept.dispatchData(secureData, async (response: AcceptResponse) => {
           clearTimeout(timeout);
 
           if (response.messages.resultCode === "Error") {
-            setError(
-              response.messages.message
-                .map((m: { text: string }) => m.text)
-                .join(". ")
+            const msgs = response.messages.message.map(
+              (m: { code: string; text: string }) => `[${m.code}] ${m.text}`
             );
+            console.error("Accept.js error:", response.messages.message);
+            setError(msgs.join(". "));
             setIsLoading(false);
             return;
           }
@@ -143,9 +161,12 @@ export function SubscriptionForm() {
             setIsLoading(false);
           }
         });
-      } catch {
+      } catch (err) {
         clearTimeout(timeout);
-        setError("Failed to process card. Please try again.");
+        console.error("Accept.js dispatch error:", err);
+        setError(
+          `Failed to process card: ${err instanceof Error ? err.message : String(err)}`
+        );
         setIsLoading(false);
       }
     },
