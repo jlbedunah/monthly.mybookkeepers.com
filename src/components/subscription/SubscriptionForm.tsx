@@ -35,7 +35,7 @@ interface AcceptResponse {
 // Public client-side keys — safe to hardcode (can only tokenize cards, not charge)
 const CLIENT_KEY =
   process.env.NEXT_PUBLIC_AUTHORIZE_NET_CLIENT_KEY ||
-  "4aHpsQ8n7w79tKPMJR442bnvKkDRaxBt6M9QcNy5BjD4wPL4D6674a68xh79cNyk";
+  "8VGS43u9RXGjCryqTjQhkd2SN5Ny75V7twcxfRt6xmN7V4C7S452Cc3L3zNK2Dhu";
 const LOGIN_ID =
   process.env.NEXT_PUBLIC_AUTHORIZE_NET_LOGIN_ID || "2ww69CxS9enB";
 
