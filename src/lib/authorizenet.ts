@@ -30,6 +30,66 @@ async function apiCall(body: Record<string, unknown>): Promise<unknown> {
   return JSON.parse(cleaned);
 }
 
+/**
+ * Charge a customer profile immediately via authCaptureTransaction.
+ */
+async function chargeCustomerProfile({
+  customerProfileId,
+  customerPaymentProfileId,
+  amount,
+}: {
+  customerProfileId: string;
+  customerPaymentProfileId: string;
+  amount: number;
+}): Promise<{ transactionId: string } | { error: string }> {
+  const response = (await apiCall({
+    createTransactionRequest: {
+      merchantAuthentication: merchantAuth(),
+      transactionRequest: {
+        transactionType: "authCaptureTransaction",
+        amount: amount.toFixed(2),
+        profile: {
+          customerProfileId,
+          paymentProfile: {
+            paymentProfileId: customerPaymentProfileId,
+          },
+        },
+      },
+    },
+  })) as {
+    transactionResponse?: {
+      responseCode?: string;
+      transId?: string;
+      errors?: Array<{ errorCode: string; errorText: string }>;
+    };
+    messages?: {
+      resultCode: string;
+      message?: Array<{ code: string; text: string }>;
+    };
+  };
+
+  const txn = response.transactionResponse;
+  if (response.messages?.resultCode !== "Ok" || !txn || txn.responseCode !== "1") {
+    const msg =
+      txn?.errors?.[0]?.errorText ??
+      response.messages?.message?.[0]?.text ??
+      "Immediate charge failed";
+    console.error("[authorizenet] Immediate charge failed:", msg);
+    return { error: msg };
+  }
+
+  return { transactionId: txn.transId ?? "unknown" };
+}
+
+/**
+ * Returns the 2nd of next month as "YYYY-MM-DD".
+ */
+function getSecondOfNextMonth(): string {
+  const now = new Date();
+  const next = new Date(now.getFullYear(), now.getMonth() + 1, 2);
+  return `${next.getFullYear()}-${String(next.getMonth() + 1).padStart(2, "0")}-02`;
+}
+
 export interface SubscriptionDetail {
   arbSubscriptionId: string;
   name: string | null;
@@ -113,12 +173,13 @@ export async function getSubscriptionDetail(
 }
 
 /**
- * Create an ARB subscription using an opaque payment nonce from Accept.js.
+ * Charge immediately and create a recurring ARB subscription.
  *
- * ARB doesn't accept opaqueData directly (E00114), so we:
- * 1. Create a CIM customer profile with the token
- * 2. Wait briefly for propagation
- * 3. Create the ARB subscription using the profile
+ * Flow:
+ * 1. Create a CIM customer profile with the Accept.js token
+ * 2. Wait briefly for profile propagation
+ * 3. Charge the customer immediately ($189)
+ * 4. Create ARB subscription starting the 2nd of next month
  */
 export async function createARBSubscription({
   name,
@@ -132,7 +193,7 @@ export async function createARBSubscription({
   companyName: string;
   opaqueData: { dataDescriptor: string; dataValue: string };
   amount: number;
-}): Promise<{ subscriptionId: string } | { error: string }> {
+}): Promise<{ subscriptionId: string; transactionId: string } | { error: string }> {
   const parts = name.trim().split(/\s+/);
   const firstName = parts[0] || name;
   const lastName = parts.slice(1).join(" ") || name;
@@ -187,9 +248,23 @@ export async function createARBSubscription({
   // Step 2: Brief delay for profile propagation
   await new Promise((r) => setTimeout(r, 2000));
 
-  // Step 3: Create ARB subscription using the customer profile
-  const now = new Date();
-  const startDate = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}`;
+  // Step 3: Charge immediately
+  const chargeResult = await chargeCustomerProfile({
+    customerProfileId,
+    customerPaymentProfileId,
+    amount,
+  });
+
+  if ("error" in chargeResult) {
+    return { error: chargeResult.error };
+  }
+
+  console.log(
+    `[authorizenet] Immediate charge successful: txn ${chargeResult.transactionId}`
+  );
+
+  // Step 4: Create ARB subscription starting 2nd of next month
+  const startDate = getSecondOfNextMonth();
 
   const arbResponse = (await apiCall({
     ARBCreateSubscriptionRequest: {
@@ -224,7 +299,10 @@ export async function createARBSubscription({
     return { error: msg };
   }
 
-  return { subscriptionId: arbResponse.subscriptionId };
+  return {
+    subscriptionId: arbResponse.subscriptionId,
+    transactionId: chargeResult.transactionId,
+  };
 }
 
 /**

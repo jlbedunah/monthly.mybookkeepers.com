@@ -53,6 +53,10 @@ export async function POST(request: Request) {
     );
   }
 
+  console.log(
+    `[start-monthly] Success: txn=${result.transactionId}, sub=${result.subscriptionId}`
+  );
+
   // Create user in DB
   const [newUser] = await db
     .insert(users)
