@@ -6,20 +6,8 @@ import { Input } from "@/components/ui/Input";
 import { CheckCircle } from "lucide-react";
 
 declare global {
-  interface Window {
-    Accept: {
-      dispatchData(
-        authData: { clientKey: string; apiLoginID: string },
-        cardData: {
-          cardNumber: string;
-          month: string;
-          year: string;
-          cardCode: string;
-        },
-        callback: (response: AcceptResponse) => void
-      ): void;
-    };
-  }
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const Accept: any;
 }
 
 interface AcceptResponse {
@@ -44,7 +32,7 @@ export function SubscriptionForm() {
   const [scriptLoaded, setScriptLoaded] = useState(false);
 
   useEffect(() => {
-    if (typeof window !== "undefined" && window.Accept) {
+    if (typeof window !== "undefined" && typeof Accept !== "undefined") {
       setScriptLoaded(true);
       return;
     }
@@ -99,20 +87,30 @@ export function SubscriptionForm() {
         return;
       }
 
-      // Tokenize card via Accept.js
-      window.Accept.dispatchData(
-        { clientKey, apiLoginID },
-        {
+      // Tokenize card via Accept.js (official 2-arg format)
+      const secureData = {
+        authData: { clientKey, apiLoginID },
+        cardData: {
           cardNumber: cardNumber.replace(/\s/g, ""),
           month: expMonth,
           year: expYear.length === 2 ? `20${expYear}` : expYear,
           cardCode: cvv,
         },
-        async (response: AcceptResponse) => {
+      };
+
+      const timeout = setTimeout(() => {
+        setError("Payment request timed out. Please try again.");
+        setIsLoading(false);
+      }, 15000);
+
+      try {
+        Accept.dispatchData(secureData, async (response: AcceptResponse) => {
+          clearTimeout(timeout);
+
           if (response.messages.resultCode === "Error") {
             setError(
               response.messages.message
-                .map((m) => m.text)
+                .map((m: { text: string }) => m.text)
                 .join(". ")
             );
             setIsLoading(false);
@@ -146,8 +144,12 @@ export function SubscriptionForm() {
           } finally {
             setIsLoading(false);
           }
-        }
-      );
+        });
+      } catch {
+        clearTimeout(timeout);
+        setError("Failed to process card. Please try again.");
+        setIsLoading(false);
+      }
     },
     [name, email, companyName, cardNumber, expDate, cvv, scriptLoaded]
   );
