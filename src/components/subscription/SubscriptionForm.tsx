@@ -30,12 +30,6 @@ interface AcceptResponse {
   };
 }
 
-// Public client-side keys — safe to hardcode (can only tokenize cards, not charge)
-const CLIENT_KEY =
-  process.env.NEXT_PUBLIC_AUTHORIZE_NET_CLIENT_KEY ||
-  "8VGS43u9RXGjCryqTjQhkd2SN5Ny75V7twcxfRt6xmN7V4C7S452Cc3L3zNK2Dhu";
-const LOGIN_ID =
-  process.env.NEXT_PUBLIC_AUTHORIZE_NET_LOGIN_ID || "2ww69CxS9enB";
 
 export function SubscriptionForm() {
   const [name, setName] = useState("");
@@ -86,9 +80,28 @@ export function SubscriptionForm() {
 
       setIsLoading(true);
 
-      // Tokenize card via Accept.js (3 args: authData, cardData, callback)
+      // Fetch credentials from server at runtime (same pattern as working cart)
+      let clientKey: string;
+      let apiLoginID: string;
+      try {
+        const credRes = await fetch("/api/authorize-client-key");
+        const credData = await credRes.json();
+        if (!credRes.ok || !credData.clientKey) {
+          setError("Payment system unavailable. Please try again later.");
+          setIsLoading(false);
+          return;
+        }
+        clientKey = credData.clientKey;
+        apiLoginID = credData.apiLoginID;
+      } catch {
+        setError("Failed to initialize payment. Please try again.");
+        setIsLoading(false);
+        return;
+      }
+
+      // Tokenize card via Accept.js
       window.Accept.dispatchData(
-        { clientKey: CLIENT_KEY, apiLoginID: LOGIN_ID },
+        { clientKey, apiLoginID },
         {
           cardNumber: cardNumber.replace(/\s/g, ""),
           month: expMonth,

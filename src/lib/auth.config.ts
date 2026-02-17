@@ -18,7 +18,8 @@ export const authConfig = {
 
       const isStartMonthly =
         nextUrl.pathname === "/start-monthly" ||
-        nextUrl.pathname === "/api/start-monthly";
+        nextUrl.pathname === "/api/start-monthly" ||
+        nextUrl.pathname === "/api/authorize-client-key";
 
       if (isStaticRoute || isAuthRoute || isStartMonthly) return true;
 
