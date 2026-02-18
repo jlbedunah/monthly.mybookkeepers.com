@@ -37,16 +37,16 @@ export default function StartMonthlyPage() {
             Monthly Bookkeeping
           </h1>
           <p className="mt-3 text-3xl font-bold uppercase tracking-wide md:text-4xl">
-            $199 Per Month
+            $189 Per Month
           </p>
           <p className="mt-3 text-xl text-gray-300 md:text-2xl">
             Unlimited Transactions. Unlimited Bank Accounts.
           </p>
           <p className="mt-4 max-w-2xl text-base leading-relaxed text-gray-300">
-            MyBookkeepers.com offers a premier monthly and quarterly bookkeeping
-            with unlimited transactions, making us the most cost-effective
-            solution on the market. Our commitment to transparency means you
-            won&apos;t face hidden fees or charges for additional transactions.
+            MyBookkeepers.com offers premier monthly bookkeeping with unlimited
+            transactions, making us the most cost-effective solution on the
+            market. Our commitment to transparency means you won&apos;t face
+            hidden fees or charges for additional transactions.
           </p>
           <a
             href="#signup"
