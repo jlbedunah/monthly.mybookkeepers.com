@@ -13,6 +13,7 @@ import {
   MapPin,
 } from "lucide-react";
 import { SubscriptionForm } from "@/components/subscription/SubscriptionForm";
+import { SiteHeader } from "@/components/SiteHeader";
 
 export const dynamic = "force-dynamic";
 
@@ -27,6 +28,8 @@ export default function StartMonthlyPage() {
 
   return (
     <div className="min-h-screen">
+      <SiteHeader />
+
       {/* Hero Section */}
       <section className="bg-gradient-to-br from-red-600 to-red-800 px-4 py-20 text-center text-white md:py-28">
         <div className="mx-auto max-w-3xl">
