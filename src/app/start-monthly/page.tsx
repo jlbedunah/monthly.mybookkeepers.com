@@ -32,28 +32,37 @@ export default function StartMonthlyPage() {
 
       {/* Hero Section */}
       <section className="bg-gray-800 px-4 py-20 text-white md:py-28">
-        <div className="mx-auto max-w-5xl">
-          <h1 className="text-4xl font-bold tracking-tight md:text-6xl">
-            Monthly Bookkeeping
-          </h1>
-          <p className="mt-3 text-3xl font-bold uppercase tracking-wide md:text-4xl">
-            $189 Per Month
-          </p>
-          <p className="mt-3 text-xl text-gray-300 md:text-2xl">
-            Unlimited Transactions. Unlimited Bank Accounts.
-          </p>
-          <p className="mt-4 max-w-2xl text-base leading-relaxed text-gray-300">
-            MyBookkeepers.com offers premier monthly bookkeeping with unlimited
-            transactions, making us the most cost-effective solution on the
-            market. Our commitment to transparency means you won&apos;t face
-            hidden fees or charges for additional transactions.
-          </p>
-          <a
-            href="#signup"
-            className="mt-8 inline-block rounded-lg bg-red-600 px-8 py-3 text-base font-semibold text-white shadow-lg transition hover:bg-red-700"
-          >
-            Get Started
-          </a>
+        <div className="mx-auto grid max-w-5xl items-center gap-10 md:grid-cols-2">
+          <div>
+            <h1 className="text-4xl font-bold tracking-tight md:text-6xl">
+              Monthly Bookkeeping
+            </h1>
+            <p className="mt-3 text-3xl font-bold uppercase tracking-wide md:text-4xl">
+              $189 Per Month
+            </p>
+            <p className="mt-3 text-xl text-gray-300 md:text-2xl">
+              Unlimited Transactions. Unlimited Bank Accounts.
+            </p>
+            <p className="mt-4 text-base leading-relaxed text-gray-300">
+              MyBookkeepers.com offers premier monthly bookkeeping with unlimited
+              transactions, making us the most cost-effective solution on the
+              market. Our commitment to transparency means you won&apos;t face
+              hidden fees or charges for additional transactions.
+            </p>
+            <a
+              href="#signup"
+              className="mt-8 inline-block rounded-lg bg-red-600 px-8 py-3 text-base font-semibold text-white shadow-lg transition hover:bg-red-700"
+            >
+              Get Started
+            </a>
+          </div>
+          <div className="flex justify-center">
+            <img
+              src="/brunette-thumbs-up.png"
+              alt="Happy customer"
+              className="w-full max-w-sm rounded-2xl shadow-[8px_8px_24px_rgba(0,0,0,0.4),-4px_-4px_16px_rgba(255,255,255,0.05)] border-2 border-gray-600"
+            />
+          </div>
         </div>
       </section>
 
