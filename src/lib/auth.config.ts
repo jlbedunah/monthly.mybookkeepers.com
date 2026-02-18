@@ -14,7 +14,8 @@ export const authConfig = {
       const isStaticRoute =
         nextUrl.pathname.startsWith("/_next") ||
         nextUrl.pathname.startsWith("/favicon") ||
-        nextUrl.pathname === "/robots.txt";
+        nextUrl.pathname === "/robots.txt" ||
+        /\.(png|jpg|jpeg|gif|svg|ico|webp|css|js)$/.test(nextUrl.pathname);
 
       const isStartMonthly =
         nextUrl.pathname === "/start-monthly" ||
