@@ -31,27 +31,26 @@ export default function StartMonthlyPage() {
       <SiteHeader />
 
       {/* Hero Section */}
-      <section className="bg-gradient-to-br from-red-600 to-red-800 px-4 py-20 text-center text-white md:py-28">
-        <div className="mx-auto max-w-3xl">
-          <h1 className="text-4xl font-bold tracking-tight md:text-5xl">
+      <section className="bg-gray-800 px-4 py-20 text-white md:py-28">
+        <div className="mx-auto max-w-5xl">
+          <h1 className="text-4xl font-bold tracking-tight md:text-6xl">
             Monthly Bookkeeping
           </h1>
-          <p className="mt-2 text-5xl font-extrabold md:text-6xl">
-            $189<span className="text-2xl font-medium md:text-3xl">/month</span>
+          <p className="mt-3 text-3xl font-bold uppercase tracking-wide md:text-4xl">
+            $199 Per Month
           </p>
-          <p className="mt-3 text-base text-red-100 md:text-lg">
-            $189 today, then $189/month starting {nextMonth} 2nd
-          </p>
-          <p className="mt-3 text-lg text-red-100 md:text-xl">
+          <p className="mt-3 text-xl text-gray-300 md:text-2xl">
             Unlimited Transactions. Unlimited Bank Accounts.
           </p>
-          <p className="mt-2 text-sm text-red-200">
-            The most cost-effective bookkeeping solution on the market.
-            Transparent pricing — no hidden fees.
+          <p className="mt-4 max-w-2xl text-base leading-relaxed text-gray-300">
+            MyBookkeepers.com offers a premier monthly and quarterly bookkeeping
+            with unlimited transactions, making us the most cost-effective
+            solution on the market. Our commitment to transparency means you
+            won&apos;t face hidden fees or charges for additional transactions.
           </p>
           <a
             href="#signup"
-            className="mt-8 inline-block rounded-lg bg-white px-8 py-3 text-base font-semibold text-red-700 shadow-lg transition hover:bg-red-50"
+            className="mt-8 inline-block rounded-lg bg-red-600 px-8 py-3 text-base font-semibold text-white shadow-lg transition hover:bg-red-700"
           >
             Get Started
           </a>
