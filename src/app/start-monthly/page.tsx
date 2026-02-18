@@ -246,8 +246,8 @@ export default function StartMonthlyPage() {
               },
               {
                 step: 3,
-                title: "Meet Your Bookkeeper",
-                desc: "Your dedicated bookkeeper will schedule an introductory call.",
+                title: "Upload Your Statements",
+                desc: "Upload your bank and credit card statements through your portal.",
               },
               {
                 step: 4,
