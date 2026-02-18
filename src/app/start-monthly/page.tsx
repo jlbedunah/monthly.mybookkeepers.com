@@ -58,7 +58,7 @@ export default function StartMonthlyPage() {
           </div>
           <div className="flex justify-center">
             <img
-              src="/brunette-thumbs-up.png"
+              src="/Brunette-149.png"
               alt="Happy customer"
               className="w-full max-w-sm rounded-2xl shadow-[8px_8px_24px_rgba(0,0,0,0.4),-4px_-4px_16px_rgba(255,255,255,0.05)] border-2 border-gray-600"
             />
