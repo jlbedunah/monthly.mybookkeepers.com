@@ -8,6 +8,8 @@ import { CheckCircle } from "lucide-react";
 declare global {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const Accept: any;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  interface Window { dataLayer: Record<string, any>[]; }
 }
 
 interface AcceptResponse {
@@ -145,6 +147,12 @@ export function SubscriptionForm() {
             }
 
             setSuccess(true);
+            window.dataLayer = window.dataLayer || [];
+            window.dataLayer.push({
+              event: "purchase",
+              value: 189,
+              currency: "USD",
+            });
           } catch {
             setError("Network error. Please try again.");
           } finally {
