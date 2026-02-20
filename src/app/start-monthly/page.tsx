@@ -37,7 +37,7 @@ export default function StartMonthlyPage() {
             Monthly Bookkeeping
           </h1>
           <p className="mt-3 text-3xl font-bold uppercase tracking-wide md:text-4xl">
-            $189 Per Month
+            $1 to Start — $189/Month
           </p>
           <p className="mt-3 text-xl text-gray-300 md:text-2xl">
             Unlimited Transactions. Unlimited Bank Accounts.
@@ -284,7 +284,7 @@ export default function StartMonthlyPage() {
               Get Started Today
             </h2>
             <p className="mt-1 text-sm text-gray-500">
-              $189 today, then $189/month starting {nextMonth} 2nd — Cancel anytime
+              $1 today, then $189/month starting {nextMonth} 2nd — Cancel anytime
             </p>
           </div>
           <div className="rounded-xl border border-gray-200 bg-white p-6 shadow-sm">

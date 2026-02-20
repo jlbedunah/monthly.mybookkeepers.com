@@ -150,7 +150,7 @@ export function SubscriptionForm() {
             window.dataLayer = window.dataLayer || [];
             window.dataLayer.push({
               event: "purchase",
-              value: 189,
+              value: 1,
               currency: "USD",
             });
           } catch {
@@ -257,7 +257,7 @@ export function SubscriptionForm() {
         isLoading={isLoading}
         disabled={!scriptLoaded}
       >
-        Subscribe — $189/mo
+        Subscribe — $1 to Start
       </Button>
 
       <p className="text-center text-xs text-gray-400">

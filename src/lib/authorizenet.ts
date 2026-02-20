@@ -180,8 +180,8 @@ export async function getSubscriptionDetail(
  * Flow:
  * 1. Create a CIM customer profile with the Accept.js token
  * 2. Wait briefly for profile propagation
- * 3. Charge the customer immediately ($189)
- * 4. Create ARB subscription starting the 2nd of next month
+ * 3. Charge the customer immediately (initialAmount, e.g. $1)
+ * 4. Create ARB subscription starting the 2nd of next month ($189/mo)
  */
 export async function createARBSubscription({
   name,
@@ -189,12 +189,14 @@ export async function createARBSubscription({
   companyName,
   opaqueData,
   amount,
+  initialAmount,
 }: {
   name: string;
   email: string;
   companyName: string;
   opaqueData: { dataDescriptor: string; dataValue: string };
   amount: number;
+  initialAmount?: number;
 }): Promise<{ subscriptionId: string; transactionId: string } | { error: string }> {
   const parts = name.trim().split(/\s+/);
   const firstName = parts[0] || name;
@@ -250,11 +252,11 @@ export async function createARBSubscription({
   // Step 2: Brief delay for profile propagation
   await new Promise((r) => setTimeout(r, 2000));
 
-  // Step 3: Charge immediately
+  // Step 3: Charge immediately (initialAmount if provided, otherwise full amount)
   const chargeResult = await chargeCustomerProfile({
     customerProfileId,
     customerPaymentProfileId,
-    amount,
+    amount: initialAmount ?? amount,
   });
 
   if ("error" in chargeResult) {

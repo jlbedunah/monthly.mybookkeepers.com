@@ -3,6 +3,7 @@ import { startMonthlySchema } from "@/lib/validations";
 import { createARBSubscription } from "@/lib/authorizenet";
 import { Resend } from "resend";
 
+const INITIAL_AMOUNT = 1;
 const SUBSCRIPTION_AMOUNT = 189;
 
 export async function POST(request: Request) {
@@ -44,6 +45,7 @@ export async function POST(request: Request) {
     companyName,
     opaqueData,
     amount: SUBSCRIPTION_AMOUNT,
+    initialAmount: INITIAL_AMOUNT,
   });
 
   if ("error" in result) {
