@@ -56,6 +56,35 @@ export async function sendSubmissionNotification({
   });
 }
 
+interface TrialSignupNotificationParams {
+  clientName: string;
+  clientEmail: string;
+  companyName: string;
+}
+
+export async function sendTrialSignupNotification({
+  clientName,
+  clientEmail,
+  companyName,
+}: TrialSignupNotificationParams) {
+  const html = `
+    <div style="font-family:sans-serif;max-width:600px;margin:0 auto">
+      <h2 style="color:#991b1b">New $1 Trial Signup</h2>
+      <p><strong>Name:</strong> ${clientName}</p>
+      <p><strong>Email:</strong> ${clientEmail}</p>
+      <p><strong>Company:</strong> ${companyName}</p>
+      <p style="margin-top:16px;color:#6b7280;font-size:14px">Their $189/month subscription begins on the 2nd of next month.</p>
+    </div>
+  `;
+
+  await resend.emails.send({
+    from: "MyBookkeepers.com <noreply@mybookkeepers.com>",
+    to: ["jason@mybookkeepers.com", "scott@mybookkeepers.com"],
+    subject: `New $1 Trial Signup — ${companyName}`,
+    html,
+  });
+}
+
 interface OverdueClientNotificationParams {
   clientName: string;
   clientEmail: string;

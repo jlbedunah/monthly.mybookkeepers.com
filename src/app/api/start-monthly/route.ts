@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { startMonthlySchema } from "@/lib/validations";
 import { createARBSubscription } from "@/lib/authorizenet";
+import { sendTrialSignupNotification } from "@/lib/email";
 import { Resend } from "resend";
 
 const INITIAL_AMOUNT = 1;
@@ -129,6 +130,17 @@ export async function POST(request: Request) {
   } catch (err) {
     // Don't fail the whole request if email fails — subscription is already created
     console.error("[start-monthly] Failed to send magic link email:", err);
+  }
+
+  // Notify admins of new trial signup
+  try {
+    await sendTrialSignupNotification({
+      clientName: name,
+      clientEmail: email,
+      companyName,
+    });
+  } catch (err) {
+    console.error("[start-monthly] Failed to send admin notification:", err);
   }
 
   return NextResponse.json({ success: true });
