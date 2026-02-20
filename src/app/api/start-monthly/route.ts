@@ -4,7 +4,7 @@ import { createARBSubscription } from "@/lib/authorizenet";
 import { sendTrialSignupNotification } from "@/lib/email";
 import { Resend } from "resend";
 
-const INITIAL_AMOUNT = 1;
+const INITIAL_AMOUNT = 1.99;
 const SUBSCRIPTION_AMOUNT = 189;
 
 export async function POST(request: Request) {
