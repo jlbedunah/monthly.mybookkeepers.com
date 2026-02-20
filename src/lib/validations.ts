@@ -41,6 +41,9 @@ export const startMonthlySchema = z.object({
   name: z.string().min(1, "Name is required").max(100),
   email: z.string().email("Invalid email").max(200),
   companyName: z.string().min(1, "Company name is required").max(200),
+  phone: z.string().min(1, "Phone number is required").max(20),
+  address: z.string().min(1, "Billing address is required").max(200),
+  zip: z.string().min(1, "ZIP code is required").max(10),
   opaqueData: z.object({
     dataDescriptor: z.string(),
     dataValue: z.string(),

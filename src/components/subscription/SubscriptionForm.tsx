@@ -24,6 +24,9 @@ export function SubscriptionForm() {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [companyName, setCompanyName] = useState("");
+  const [phone, setPhone] = useState("");
+  const [address, setAddress] = useState("");
+  const [zip, setZip] = useState("");
   const [cardNumber, setCardNumber] = useState("");
   const [expDate, setExpDate] = useState("");
   const [cvv, setCvv] = useState("");
@@ -54,7 +57,7 @@ export function SubscriptionForm() {
         return;
       }
 
-      if (!name || !email || !companyName || !cardNumber || !expDate || !cvv) {
+      if (!name || !email || !companyName || !phone || !address || !zip || !cardNumber || !expDate || !cvv) {
         setError("Please fill out all fields.");
         return;
       }
@@ -134,6 +137,9 @@ export function SubscriptionForm() {
                 name,
                 email,
                 companyName,
+                phone,
+                address,
+                zip,
                 opaqueData: response.opaqueData,
               }),
             });
@@ -166,7 +172,7 @@ export function SubscriptionForm() {
         setIsLoading(false);
       }
     },
-    [name, email, companyName, cardNumber, expDate, cvv, scriptLoaded]
+    [name, email, companyName, phone, address, zip, cardNumber, expDate, cvv, scriptLoaded]
   );
 
   if (success) {
@@ -210,6 +216,34 @@ export function SubscriptionForm() {
         value={companyName}
         onChange={(e) => setCompanyName(e.target.value)}
         required
+      />
+      <Input
+        id="phone"
+        label="Phone Number"
+        type="tel"
+        placeholder="(555) 123-4567"
+        value={phone}
+        onChange={(e) => setPhone(e.target.value)}
+        required
+        autoComplete="tel"
+      />
+      <Input
+        id="address"
+        label="Billing Address"
+        placeholder="123 Main St"
+        value={address}
+        onChange={(e) => setAddress(e.target.value)}
+        required
+        autoComplete="street-address"
+      />
+      <Input
+        id="zip"
+        label="ZIP Code"
+        placeholder="75092"
+        value={zip}
+        onChange={(e) => setZip(e.target.value)}
+        required
+        autoComplete="postal-code"
       />
 
       <hr className="border-gray-200" />

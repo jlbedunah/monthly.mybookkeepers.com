@@ -22,7 +22,7 @@ export async function POST(request: Request) {
     );
   }
 
-  const { name, email, companyName, opaqueData } = parsed.data;
+  const { name, email, companyName, phone, address, zip, opaqueData } = parsed.data;
 
   const { db } = await import("@/lib/db");
   const { users, subscriptions } = await import("@/lib/db/schema");
@@ -47,6 +47,8 @@ export async function POST(request: Request) {
     opaqueData,
     amount: SUBSCRIPTION_AMOUNT,
     initialAmount: INITIAL_AMOUNT,
+    address,
+    zip,
   });
 
   if ("error" in result) {
@@ -138,6 +140,7 @@ export async function POST(request: Request) {
       clientName: name,
       clientEmail: email,
       companyName,
+      phone,
     });
   } catch (err) {
     console.error("[start-monthly] Failed to send admin notification:", err);

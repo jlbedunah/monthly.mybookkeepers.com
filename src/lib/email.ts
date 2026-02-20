@@ -60,18 +60,21 @@ interface TrialSignupNotificationParams {
   clientName: string;
   clientEmail: string;
   companyName: string;
+  phone: string;
 }
 
 export async function sendTrialSignupNotification({
   clientName,
   clientEmail,
   companyName,
+  phone,
 }: TrialSignupNotificationParams) {
   const html = `
     <div style="font-family:sans-serif;max-width:600px;margin:0 auto">
       <h2 style="color:#991b1b">New $1 Trial Signup</h2>
       <p><strong>Name:</strong> ${clientName}</p>
       <p><strong>Email:</strong> ${clientEmail}</p>
+      <p><strong>Phone:</strong> ${phone}</p>
       <p><strong>Company:</strong> ${companyName}</p>
       <p style="margin-top:16px;color:#6b7280;font-size:14px">Their $189/month subscription begins on the 2nd of next month.</p>
     </div>

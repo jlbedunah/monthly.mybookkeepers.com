@@ -190,6 +190,8 @@ export async function createARBSubscription({
   opaqueData,
   amount,
   initialAmount,
+  address,
+  zip,
 }: {
   name: string;
   email: string;
@@ -197,6 +199,8 @@ export async function createARBSubscription({
   opaqueData: { dataDescriptor: string; dataValue: string };
   amount: number;
   initialAmount?: number;
+  address?: string;
+  zip?: string;
 }): Promise<{ subscriptionId: string; transactionId: string } | { error: string }> {
   const parts = name.trim().split(/\s+/);
   const firstName = parts[0] || name;
@@ -210,7 +214,7 @@ export async function createARBSubscription({
         email,
         paymentProfiles: [
           {
-            billTo: { firstName, lastName },
+            billTo: { firstName, lastName, ...(address && { address }), ...(zip && { zip }) },
             payment: {
               opaqueData: {
                 dataDescriptor: opaqueData.dataDescriptor,
