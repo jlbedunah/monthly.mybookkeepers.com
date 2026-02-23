@@ -16,6 +16,12 @@ import Image from "next/image";
 import { SubscriptionForm } from "@/components/subscription/SubscriptionForm";
 import { SiteHeader } from "@/components/SiteHeader";
 
+import type { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "Monthly Bookkeeping - MyBookkeepers.com",
+};
+
 export const dynamic = "force-dynamic";
 
 function getNextMonthLabel(): string {
