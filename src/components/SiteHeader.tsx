@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { ChevronDown, Menu, X } from "lucide-react";
 
 const NAV_ITEMS = [
@@ -48,11 +49,15 @@ export function SiteHeader() {
     <header className="border-b border-gray-200 bg-white">
       <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-3">
         {/* Logo */}
-        <a
-          href="https://mybookkeepers.com/"
-          className="text-lg font-bold text-red-600"
-        >
-          MyBookkeepers
+        <a href="https://mybookkeepers.com/">
+          <Image
+            src="/My-Bookkeeper-Logo-New (1).png"
+            alt="MyBookkeepers.com"
+            width={200}
+            height={50}
+            className="h-10 w-auto"
+            priority
+          />
         </a>
 
         {/* Desktop Nav */}
