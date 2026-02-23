@@ -10,6 +10,8 @@ declare global {
   const Accept: any;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   interface Window { dataLayer: Record<string, any>[]; }
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  function fbq(...args: any[]): void;
 }
 
 interface AcceptResponse {
@@ -159,6 +161,9 @@ export function SubscriptionForm() {
               value: 1,
               currency: "USD",
             });
+            if (typeof fbq === "function") {
+              fbq("track", "Purchase", { value: 1.00, currency: "USD" });
+            }
           } catch {
             setError("Network error. Please try again.");
           } finally {
