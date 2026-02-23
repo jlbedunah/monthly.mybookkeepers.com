@@ -335,21 +335,32 @@ export default function StartMonthlyPage() {
 
       {/* Financial Records */}
       <section className="px-4 py-16 md:py-20">
-        <div className="mx-auto max-w-3xl">
-          <h2 className="mb-4 text-center text-2xl font-bold text-gray-900 md:text-3xl">
-            Accurate Financial Records are Essential for any Business.
-          </h2>
-          <p className="text-center text-base leading-relaxed text-gray-600">
-            MyBookkeepers.com plays a crucial role in maintaining these records,
-            ensuring your financial data is always up to date. By doing so, we
-            provide you with a clear view of your business&apos;s health at all
-            times. From expense tracking to analyzing profit margins, our
-            meticulous approach keeps everything organized and transparent,
-            allowing you to make informed decisions that drive growth and
-            sustainability. With our expertise, you can focus on your core
-            operations, confident that your financial foundation is in capable
-            hands.
-          </p>
+        <div className="mx-auto flex max-w-5xl flex-col items-center gap-10 md:flex-row md:gap-14">
+          <div className="w-full max-w-md flex-shrink-0 md:w-1/2">
+            <Image
+              src="/Accounting-Team-1536x1142.png"
+              alt="MyBookkeepers accounting team"
+              width={1536}
+              height={1142}
+              className="w-full rounded-lg"
+            />
+          </div>
+          <div className="flex-1">
+            <h2 className="mb-4 text-2xl font-bold text-gray-900 md:text-3xl">
+              Accurate Financial Records are Essential for any Business.
+            </h2>
+            <p className="text-base leading-relaxed text-gray-600">
+              MyBookkeepers.com plays a crucial role in maintaining these records,
+              ensuring your financial data is always up to date. By doing so, we
+              provide you with a clear view of your business&apos;s health at all
+              times. From expense tracking to analyzing profit margins, our
+              meticulous approach keeps everything organized and transparent,
+              allowing you to make informed decisions that drive growth and
+              sustainability. With our expertise, you can focus on your core
+              operations, confident that your financial foundation is in capable
+              hands.
+            </p>
+          </div>
         </div>
       </section>
 
