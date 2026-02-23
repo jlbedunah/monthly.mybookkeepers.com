@@ -364,6 +364,37 @@ export default function StartMonthlyPage() {
         </div>
       </section>
 
+      {/* Stress-Free Compliance */}
+      <section className="bg-white px-4 py-16 md:py-20">
+        <div className="mx-auto flex max-w-5xl flex-col items-center gap-10 md:flex-row md:gap-14">
+          <div className="flex-1">
+            <h2 className="mb-4 text-2xl font-bold text-gray-900 md:text-3xl">
+              Stress-Free Compliance.
+            </h2>
+            <p className="text-base leading-relaxed text-gray-600">
+              Forget the worries of tax season! With our expert bookkeeping
+              services, our clients enjoy a stress-free experience, knowing that
+              they are fully compliant with all financial regulations. We
+              meticulously prepare and organize their financial records, ensuring
+              that everything is in order when it matters most. Your dedicated
+              team takes the burden off their shoulders, allowing them to focus
+              on what they do best—growing their business—while we handle the
+              complexities of their finances. Experience peace of mind and let us
+              help you navigate the financial landscape with confidence!
+            </p>
+          </div>
+          <div className="w-full max-w-md flex-shrink-0 md:w-1/2">
+            <Image
+              src="/bookkeeping-talking-to-client-6-600x315.png"
+              alt="Bookkeeper talking to client"
+              width={600}
+              height={315}
+              className="w-full rounded-lg"
+            />
+          </div>
+        </div>
+      </section>
+
       {/* Footer */}
       <footer className="border-t border-gray-200 bg-gray-50 px-4 py-10">
         <div className="mx-auto max-w-3xl text-center">
