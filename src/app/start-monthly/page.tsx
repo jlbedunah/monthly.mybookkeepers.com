@@ -12,6 +12,7 @@ import {
   Phone,
   MapPin,
 } from "lucide-react";
+import Image from "next/image";
 import { SubscriptionForm } from "@/components/subscription/SubscriptionForm";
 import { SiteHeader } from "@/components/SiteHeader";
 
@@ -32,28 +33,40 @@ export default function StartMonthlyPage() {
 
       {/* Hero Section */}
       <section className="bg-gray-800 px-4 py-20 text-white md:py-28">
-        <div className="mx-auto max-w-3xl text-center">
-          <h1 className="text-4xl font-bold tracking-tight md:text-6xl">
-            Monthly Bookkeeping
-          </h1>
-          <p className="mt-3 text-3xl font-bold uppercase tracking-wide md:text-4xl">
-            $1 to Start — $189/Month
-          </p>
-          <p className="mt-3 text-xl text-gray-300 md:text-2xl">
-            Unlimited Transactions. Unlimited Bank Accounts.
-          </p>
-          <p className="mt-4 text-base leading-relaxed text-gray-300">
-            MyBookkeepers.com offers premier monthly bookkeeping with unlimited
-            transactions, making us the most cost-effective solution on the
-            market. Our commitment to transparency means you won&apos;t face
-            hidden fees or charges for additional transactions.
-          </p>
-          <a
-            href="#signup"
-            className="mt-8 inline-block rounded-lg bg-red-600 px-8 py-3 text-base font-semibold text-white shadow-lg transition hover:bg-red-700"
-          >
-            Get Started
-          </a>
+        <div className="mx-auto flex max-w-6xl flex-col items-center gap-10 md:flex-row md:gap-16">
+          <div className="flex-1 text-center md:text-left">
+            <h1 className="text-4xl font-bold tracking-tight md:text-6xl">
+              Monthly Bookkeeping
+            </h1>
+            <p className="mt-3 text-3xl font-bold uppercase tracking-wide md:text-4xl">
+              $1 to Start — $189/Month
+            </p>
+            <p className="mt-3 text-xl text-gray-300 md:text-2xl">
+              Unlimited Transactions. Unlimited Bank Accounts.
+            </p>
+            <p className="mt-4 text-base leading-relaxed text-gray-300">
+              MyBookkeepers.com offers premier monthly bookkeeping with unlimited
+              transactions, making us the most cost-effective solution on the
+              market. Our commitment to transparency means you won&apos;t face
+              hidden fees or charges for additional transactions.
+            </p>
+            <a
+              href="#signup"
+              className="mt-8 inline-block rounded-lg bg-red-600 px-8 py-3 text-base font-semibold text-white shadow-lg transition hover:bg-red-700"
+            >
+              Get Started
+            </a>
+          </div>
+          <div className="w-full max-w-sm flex-shrink-0 md:w-auto">
+            <Image
+              src="/1 dollar to start MB-01.png"
+              alt="$1 to start monthly bookkeeping"
+              width={400}
+              height={400}
+              className="mx-auto"
+              priority
+            />
+          </div>
         </div>
       </section>
 
@@ -71,6 +84,33 @@ export default function StartMonthlyPage() {
           <p className="text-sm font-medium text-gray-700">
             Trusted by 7,000+ businesses across the United States
           </p>
+        </div>
+      </section>
+
+      {/* Customer Reviews */}
+      <section className="bg-gray-50 px-4 py-12">
+        <div className="mx-auto grid max-w-5xl grid-cols-1 gap-6 sm:grid-cols-3">
+          <Image
+            src="/Review-Darren-1.png"
+            alt="Review by Darren Jones — 5 stars"
+            width={500}
+            height={300}
+            className="w-full rounded-lg"
+          />
+          <Image
+            src="/Review-Collin-1.png"
+            alt="Review by Collin Joenosek — 5 stars"
+            width={500}
+            height={300}
+            className="w-full rounded-lg"
+          />
+          <Image
+            src="/Review-Cynthia-1.png"
+            alt="Review by Cynthia Stick — 5 stars"
+            width={500}
+            height={300}
+            className="w-full rounded-lg"
+          />
         </div>
       </section>
 
@@ -290,6 +330,26 @@ export default function StartMonthlyPage() {
           <div className="rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
             <SubscriptionForm />
           </div>
+        </div>
+      </section>
+
+      {/* Financial Records */}
+      <section className="px-4 py-16 md:py-20">
+        <div className="mx-auto max-w-3xl">
+          <h2 className="mb-4 text-center text-2xl font-bold text-gray-900 md:text-3xl">
+            Accurate Financial Records are Essential for any Business.
+          </h2>
+          <p className="text-center text-base leading-relaxed text-gray-600">
+            MyBookkeepers.com plays a crucial role in maintaining these records,
+            ensuring your financial data is always up to date. By doing so, we
+            provide you with a clear view of your business&apos;s health at all
+            times. From expense tracking to analyzing profit margins, our
+            meticulous approach keeps everything organized and transparent,
+            allowing you to make informed decisions that drive growth and
+            sustainability. With our expertise, you can focus on your core
+            operations, confident that your financial foundation is in capable
+            hands.
+          </p>
         </div>
       </section>
 
