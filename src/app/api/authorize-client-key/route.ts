@@ -2,9 +2,7 @@ import { NextResponse } from "next/server";
 
 export async function GET() {
   const clientKey = process.env.AUTHORIZE_NET_CLIENT_KEY;
-  const apiLoginID =
-    process.env.AUTHORIZE_NET_LOGIN_ID_PROD ||
-    process.env.AUTHORIZE_NET_LOGIN_ID;
+  const apiLoginID = process.env.AUTHORIZE_NET_LOGIN_ID;
 
   if (!clientKey || !apiLoginID) {
     return NextResponse.json(

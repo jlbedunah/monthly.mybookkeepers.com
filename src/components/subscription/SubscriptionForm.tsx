@@ -35,149 +35,73 @@ export function SubscriptionForm() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
-  const [scriptLoaded, setScriptLoaded] = useState(false);
 
-  useEffect(() => {
-    if (typeof window !== "undefined" && typeof Accept !== "undefined") {
-      setScriptLoaded(true);
-      return;
-    }
-    const script = document.createElement("script");
-    script.src = "https://js.authorize.net/v1/Accept.js";
-    script.charset = "utf-8";
-    script.onload = () => setScriptLoaded(true);
-    document.head.appendChild(script);
-  }, []);
+  // TODO: Restore Accept.js loading when re-enabling Authorize.net
+  // useEffect(() => {
+  //   if (typeof window !== "undefined" && typeof Accept !== "undefined") {
+  //     setScriptLoaded(true);
+  //     return;
+  //   }
+  //   const script = document.createElement("script");
+  //   script.src = "https://js.authorize.net/v1/Accept.js";
+  //   script.charset = "utf-8";
+  //   script.onload = () => setScriptLoaded(true);
+  //   document.head.appendChild(script);
+  // }, []);
 
   const handleSubmit = useCallback(
     async (e: React.FormEvent) => {
       e.preventDefault();
       setError(null);
 
-      if (!scriptLoaded) {
-        setError("Payment system is loading. Please try again.");
-        return;
-      }
-
       if (!name || !email || !companyName || !phone || !address || !zip || !cardNumber || !expDate || !cvv) {
         setError("Please fill out all fields.");
         return;
       }
 
-      // Parse expiration MM/YY
-      const expParts = expDate.replace(/\s/g, "").split("/");
-      if (expParts.length !== 2 || !expParts[0] || !expParts[1]) {
-        setError("Expiration date must be MM/YY format.");
-        return;
-      }
-      const [expMonth, expYear] = expParts;
-
       setIsLoading(true);
 
-      // Fetch credentials from server at runtime
-      let clientKey: string;
-      let apiLoginID: string;
+      // TODO: Restore Accept.js tokenization when re-enabling Authorize.net
+      // For now, skip tokenization and send directly to our API without payment processing
       try {
-        const credRes = await fetch("/api/authorize-client-key");
-        const credData = await credRes.json();
-        if (!credRes.ok || !credData.clientKey || !credData.apiLoginID) {
-          setError("Payment system unavailable. Please try again later.");
+        const res = await fetch("/api/start-monthly", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            name,
+            email,
+            companyName,
+            phone,
+            address,
+            zip,
+          }),
+        });
+
+        const data = await res.json();
+
+        if (!res.ok) {
+          setError(data.error || "Something went wrong. Please try again.");
           setIsLoading(false);
           return;
         }
-        clientKey = credData.clientKey;
-        apiLoginID = credData.apiLoginID;
-      } catch {
-        setError("Failed to initialize payment. Please try again.");
-        setIsLoading(false);
-        return;
-      }
 
-      // Tokenize card via Accept.js
-      const secureData = {
-        authData: { clientKey, apiLoginID },
-        cardData: {
-          cardNumber: cardNumber.replace(/\s/g, ""),
-          month: expMonth,
-          year: expYear.length === 2 ? `20${expYear}` : expYear,
-          cardCode: cvv,
-        },
-      };
-
-      const timeout = setTimeout(() => {
-        setError("Payment request timed out. Please try again.");
-        setIsLoading(false);
-      }, 15000);
-
-      try {
-        Accept.dispatchData(secureData, async (response: AcceptResponse) => {
-          clearTimeout(timeout);
-
-          if (response.messages.resultCode === "Error") {
-            setError(
-              response.messages.message
-                .map((m: { text: string }) => m.text)
-                .join(". ")
-            );
-            setIsLoading(false);
-            return;
-          }
-
-          if (!response.opaqueData) {
-            console.error("Accept.js returned Ok but no opaqueData:", response);
-            setError("Payment token missing. Please try again.");
-            setIsLoading(false);
-            return;
-          }
-
-          // Send to our API
-          try {
-            const res = await fetch("/api/start-monthly", {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({
-                name,
-                email,
-                companyName,
-                phone,
-                address,
-                zip,
-                opaqueData: response.opaqueData,
-              }),
-            });
-
-            const data = await res.json();
-
-            if (!res.ok) {
-              setError(data.error || "Something went wrong. Please try again.");
-              setIsLoading(false);
-              return;
-            }
-
-            setSuccess(true);
-            window.dataLayer = window.dataLayer || [];
-            window.dataLayer.push({
-              event: "purchase",
-              value: 1,
-              currency: "USD",
-            });
-            if (typeof fbq === "function") {
-              fbq("track", "Purchase", { value: 1.00, currency: "USD" });
-            }
-          } catch {
-            setError("Network error. Please try again.");
-          } finally {
-            setIsLoading(false);
-          }
+        setSuccess(true);
+        window.dataLayer = window.dataLayer || [];
+        window.dataLayer.push({
+          event: "purchase",
+          value: 1,
+          currency: "USD",
         });
-      } catch (err) {
-        clearTimeout(timeout);
-        console.error("Accept.js dispatch error:", err);
-        setError("Failed to process card. Please try again.");
+        if (typeof fbq === "function") {
+          fbq("track", "Purchase", { value: 1.00, currency: "USD" });
+        }
+      } catch {
+        setError("Network error. Please try again.");
+      } finally {
         setIsLoading(false);
       }
     },
-    [name, email, companyName, phone, address, zip, cardNumber, expDate, cvv, scriptLoaded]
+    [name, email, companyName, phone, address, zip, cardNumber, expDate, cvv]
   );
 
   if (success) {
@@ -294,7 +218,6 @@ export function SubscriptionForm() {
         className="w-full"
         size="lg"
         isLoading={isLoading}
-        disabled={!scriptLoaded}
       >
         Subscribe — $1 to Start
       </Button>

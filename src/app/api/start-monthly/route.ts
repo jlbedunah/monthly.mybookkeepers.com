@@ -39,27 +39,30 @@ export async function POST(request: Request) {
     );
   }
 
-  // Create ARB subscription in Authorize.net
-  const result = await createARBSubscription({
-    name,
-    email,
-    companyName,
-    opaqueData,
-    amount: SUBSCRIPTION_AMOUNT,
-    initialAmount: INITIAL_AMOUNT,
-    address,
-    zip,
-  });
+  // TODO: Restore Authorize.net payment processing when re-enabling
+  // const result = await createARBSubscription({
+  //   name,
+  //   email,
+  //   companyName,
+  //   opaqueData,
+  //   amount: SUBSCRIPTION_AMOUNT,
+  //   initialAmount: INITIAL_AMOUNT,
+  //   address,
+  //   zip,
+  // });
+  //
+  // if ("error" in result) {
+  //   return NextResponse.json(
+  //     { error: result.error },
+  //     { status: 400 }
+  //   );
+  // }
 
-  if ("error" in result) {
-    return NextResponse.json(
-      { error: result.error },
-      { status: 400 }
-    );
-  }
+  // Bypass payment — use dummy IDs for testing
+  const result = { transactionId: "test-no-charge", subscriptionId: `test-${Date.now()}` };
 
   console.log(
-    `[start-monthly] Success: txn=${result.transactionId}, sub=${result.subscriptionId}`
+    `[start-monthly] Success (TEST MODE): txn=${result.transactionId}, sub=${result.subscriptionId}`
   );
 
   // Create user in DB
