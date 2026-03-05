@@ -44,11 +44,10 @@ export const startMonthlySchema = z.object({
   phone: z.string().min(1, "Phone number is required").max(20),
   address: z.string().min(1, "Billing address is required").max(200),
   zip: z.string().min(1, "ZIP code is required").max(10),
-  // TODO: Make required again when re-enabling Authorize.net
   opaqueData: z.object({
     dataDescriptor: z.string(),
     dataValue: z.string(),
-  }).optional(),
+  }),
 });
 
 export type UpdateUserInput = z.infer<typeof updateUserSchema>;
